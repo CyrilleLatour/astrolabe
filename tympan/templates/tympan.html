@@ -499,7 +499,7 @@
                             <!-- Le point haut du cercle doit rester à centre_y - (cy - rayon) * facteur -->
                             {% set point_haut_astrolabe = horizon.cy - horizon.rayon %}
                             {% set point_haut_svg = centre_y - (point_haut_astrolabe * facteur) %}
-                            {% set clamped_radius = 10000 %}
+                            {% set clamped_radius = 100000 %}
                             {% set adjusted_center_y = point_haut_svg + clamped_radius %}
                             <circle
                                 cx="300"
