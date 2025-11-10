@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculateur Géométrique d'Intersections (Avec Progression Accélérée)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .tables-container {
+            display: flex;
+            gap: 20px;
+        }
+        .table-wrapper {
+            flex: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .form-row .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .form-row .button {
+            margin-bottom: 15px;
+        }
+        .info {
+            background-color: #e8f4f8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .vector-info {
+            background-color: #f8f8e8;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculateur Géométrique d'Intersections</h1>
+        
+        <div class="info">
+            <p>Ce calculateur utilise une approche géométrique pour déterminer les coordonnées des intersections entre le cercle d'azimut 90° et les almucantarats, y compris pour les hauteurs négatives (-6°, -12°, -18°) aux basses latitudes.</p>
+            <p>La méthode analyse les vecteurs de progression entre intersections consécutives et les prolonge pour calculer les intersections difficiles à obtenir par calcul direct, avec une augmentation progressive des distances.</p>
+        </div>
+        
+        <form onsubmit="calculateGeometrically(); return false;">
+            <div class="form-row">
+                <div class="input-group">
+                    <label for="latitude-deg">Latitude (degrés):</label>
+                    <input type="number" id="latitude-deg" min="-65" max="65" step="1" value="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="latitude-min">Minutes:</label>
+                    <input type="number" id="latitude-min" min="0" max="59" step="1" value="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="latitude-sec">Secondes:</label>
+                    <input type="number" id="latitude-sec" min="0" max="59" step="1" value="0">
+                </div>
+                
+                <div class="input-group">
+                    <label for="equator-radius">Rayon de l'Équateur:</label>
+                    <input type="number" id="equator-radius" min="1" step="0.1" value="6">
+                </div>
+                
+                <button type="submit" class="button">Calculer</button>
+            </div>
+        </form>
+        
+        <div id="error-message" class="error hidden"></div>
+        
+        <div id="results">
+            <h2>Résultats</h2>
+            <p id="latitude-display"></p>
+            
+            <div class="tables-container">
+                <div class="table-wrapper">
+                    <h3>Coordonnées (Calculées et Prolongées)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Hauteur</th>
+                                <th>Coordonnée X</th>
+                                <th>Coordonnée Y</th>
+                                <th>Méthode</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+                
+                <div class="table-wrapper">
+                    <h3>Analyse Vectorielle</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Entre hauteurs</th>
+                                <th>Distance</th>
+                                <th>Direction X</th>
+                                <th>Direction Y</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vectors-body"></tbody>
+                    </table>
+                    
+                    <div id="vector-details" class="vector-info hidden">
+                        <h4>Détails du vecteur de progression</h4>
+                        <p id="progression-info"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exécution du calcul initial au chargement
+        window.onload = function() {
+            calculateGeometrically();
+        };
+        
+        // Fonction principale pour le calcul géométrique des intersections
+        function calculateGeometrically() {
+            try {
+                // Récupérer les valeurs des inputs
+                const latitudeDeg = parseFloat(document.getElementById('latitude-deg').value) || 0;
+                const latitudeMin = parseFloat(document.getElementById('latitude-min').value) || 0;
+                const latitudeSec = parseFloat(document.getElementById('latitude-sec').value) || 0;
+                const equatorRadius = parseFloat(document.getElementById('equator-radius').value) || 6;
+                
+                // Convertir en degrés décimaux
+                const latitudeDec = latitudeDeg + latitudeMin/60 + latitudeSec/3600;
+                
+                // Afficher la latitude
+                document.getElementById('latitude-display').textContent = 
+                    `Latitude: ${Math.abs(latitudeDeg)}° ${latitudeMin}' ${latitudeSec}" ${latitudeDec >= 0 ? 'N' : 'S'} (${latitudeDec.toFixed(6)}°)`;
+                
+                // Calculer les intersections (méthode standard)
+                const directResults = calculateDirectIntersections(latitudeDec, equatorRadius);
+                
+                // Analyser les vecteurs de progression entre intersections successives
+                const vectors = analyzeProgressionVectors(directResults);
+                
+                // Afficher l'analyse vectorielle
+                displayVectorAnalysis(vectors);
+                
+                // Calculer les intersections manquantes par prolongement géométrique
+                const allResults = calculateGeometricExtension(directResults, vectors, latitudeDec);
+                
+                // Afficher tous les résultats
+                displayResults(allResults);
+                
+                // Afficher les détails du vecteur de progression utilisé
+                if (vectors.length > 0) {
+                    const vectorDetails = document.getElementById('vector-details');
+                    const progressionInfo = document.getElementById('progression-info');
+                    
+                    // Analyser la progression des vecteurs
+                    const progressionAnalysis = analyzeVectorProgression(vectors);
+                    
+                    progressionInfo.innerHTML = `
+                        <strong>Progression moyenne :</strong> Distance = ${progressionAnalysis.avgDistance.toFixed(4)}, 
+                        Direction X = ${progressionAnalysis.avgDirX.toFixed(4)}, 
+                        Direction Y = ${progressionAnalysis.avgDirY.toFixed(4)}<br>
+                        <strong>Tendance :</strong> ${progressionAnalysis.trend}<br>
+                        <strong>Facteur d'accélération :</strong> ${progressionAnalysis.accelerationFactor.toFixed(4)}
+                    `;
+                    
+                    vectorDetails.classList.remove('hidden');
+                } else {
+                    document.getElementById('vector-details').classList.add('hidden');
+                }
+                
+            } catch (error) {
+                // Afficher l'erreur
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = `Erreur de calcul: ${error.message}`;
+                errorMessage.classList.remove('hidden');
+            }
+        }
+        
+        // Fonction pour calculer directement les intersections (méthode standard)
+        function calculateDirectIntersections(latitudeDec, equatorRadius) {
+            const results = [];
+            const S = equatorRadius / 2;
+            const latitudeRad = latitudeDec * Math.PI / 180;
+            
+            // Calculer les paramètres du cercle d'azimut 90°
+            const NP = 2 * S * Math.tan((90 - latitudeDec) * Math.PI / 360);
+            const NK = 2 * S / Math.cos(latitudeRad);
+            const ycentre = NP - NK;
+            const rayonAzimut = 2 * S / Math.cos(latitudeRad);
+            
+            // Calculer les intersections pour chaque almucantarat de 60° à -18°
+            for (let h = 60; h >= -18; h -= 6) {
+                // Cas spécial pour l'horizon (h = 0)
+                if (h === 0) {
+                    results.push({
+                        hauteur: h,
+                        x: -6,
+                        y: 0,
+                        methode: "Fixe"
+                    });
+                    continue;
+                }
+                
+                try {
+                    // Convertir la hauteur en élévation
+                    const elevation = 90 - h;
+                    
+                    // Calculer les paramètres de l'almucantarat
+                    const B = 6 * Math.tan((90 - latitudeDec + elevation) * Math.PI / 360);
+                    const C = 6 * Math.tan((90 - latitudeDec - elevation) * Math.PI / 360);
+                    const rayonAlm = (B - C) / 2;
+                    const centreYAlm = B - rayonAlm;
+                    
+                    // Ajuster avec le facteur d'échelle
+                    const rayonAlmAjuste = rayonAlm * (equatorRadius / 6);
+                    const centreYAlmAjuste = centreYAlm * (equatorRadius / 6);
+                    
+                    // Calculer la distance entre les centres des cercles
+                    const d = Math.abs(centreYAlmAjuste - ycentre);
+                    
+                    // Vérifier si les cercles s'intersectent
+                    if (d > rayonAlmAjuste + rayonAzimut || d < Math.abs(rayonAlmAjuste - rayonAzimut)) {
+                        // Pas d'intersection calculable directement
+                        // Ne pas ajouter de résultat ici, ces cas seront traités par prolongement géométrique
+                        continue;
+                    }
+                    
+                    // Calculer les coordonnées d'intersection
+                    const a = (rayonAzimut*rayonAzimut - rayonAlmAjuste*rayonAlmAjuste + d*d) / (2*d);
+                    const h2 = Math.sqrt(rayonAzimut*rayonAzimut - a*a);
+                    
+                    // Pour l'azimut 90°, les centres sont alignés verticalement
+                    const y_intersect = ycentre + a * (centreYAlmAjuste - ycentre) / d;
+                    const x_gauche = -h2; // Point avec x négatif
+                    
+                    // Ajouter le résultat avec méthode "Calculé"
+                    results.push({
+                        hauteur: h,
+                        x: x_gauche,
+                        y: y_intersect,
+                        methode: "Calculé"
+                    });
+                } catch (error) {
+                    // En cas d'erreur de calcul, ne pas ajouter de résultat
+                    // Ces cas seront traités par prolongement géométrique
+                    continue;
+                }
+            }
+            
+            // Trier les résultats par hauteur décroissante
+            results.sort((a, b) => b.hauteur - a.hauteur);
+            return results;
+        }
+        
+        // Fonction pour analyser les vecteurs de progression entre intersections successives
+        function analyzeProgressionVectors(results) {
+            const vectors = [];
+            
+            // S'assurer que nous avons au moins deux points pour calculer un vecteur
+            if (results.length < 2) {
+                return vectors;
+            }
+            
+            // Calculer les vecteurs entre points successifs
+            for (let i = 0; i < results.length - 1; i++) {
+                const p1 = results[i];
+                const p2 = results[i+1];
+                
+                // Hauteurs des almucantarats
+                const h1 = p1.hauteur;
+                const h2 = p2.hauteur;
+                
+                // Différence de hauteur (normalement 6°)
+                const dh = h1 - h2;
+                
+                // Composantes du vecteur
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                
+                // Distance entre les points
+                const distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // Composantes directionnelles (normalisées)
+                const dirX = dx / dh;
+                const dirY = dy / dh;
+                
+                // Stocker le vecteur de progression
+                vectors.push({
+                    point1: h1,
+                    point2: h2,
+                    dx: dx,
+                    dy: dy,
+                    dh: dh,
+                    distance: distance,
+                    dirX: dirX,
+                    dirY: dirY
+                });
+            }
+            
+            return vectors;
+        }
+        
+        // Fonction pour analyser la progression des vecteurs
+        function analyzeVectorProgression(vectors) {
+            // S'il n'y a pas assez de vecteurs, retourner des valeurs par défaut
+            if (vectors.length === 0) {
+                return {
+                    avgDistance: 0,
+                    avgDirX: 0,
+                    avgDirY: 0,
+                    trend: "Impossible d'analyser la tendance (pas assez de données)",
+                    accelerationFactor: 1.0
+                };
+            }
+            
+            // Calculer les moyennes des propriétés
+            let sumDistance = 0;
+            let sumDirX = 0;
+            let sumDirY = 0;
+            
+            for (const v of vectors) {
+                sumDistance += v.distance;
+                sumDirX += v.dirX;
+                sumDirY += v.dirY;
+            }
+            
+            const avgDistance = sumDistance / vectors.length;
+            const avgDirX = sumDirX / vectors.length;
+            const avgDirY = sumDirY / vectors.length;
+            
+            // Analyser la tendance et calculer un facteur d'accélération
+            let trend = "";
+            let accelerationFactor = 1.0; // Par défaut, pas d'accélération
+            
+            // Si nous avons au moins deux vecteurs, nous pouvons analyser la progression
+            if (vectors.length >= 2) {
+                const firstVector = vectors[0];
+                const lastVector = vectors[vectors.length - 1];
+                
+                // Calculer les différences de direction et de distance
+                const dirXDiff = lastVector.dirX - firstVector.dirX;
+                const dirYDiff = lastVector.dirY - firstVector.dirY;
+                const distanceDiff = lastVector.distance - firstVector.distance;
+                
+                // Analyser la tendance
+                if (Math.abs(dirXDiff) < 0.01 && Math.abs(dirYDiff) < 0.01 && Math.abs(distanceDiff) < 0.1) {
+                    trend = "Progression linéaire (vecteur constant)";
+                    accelerationFactor = 1.0;
+                } else if (
+                    (dirXDiff > 0 && dirYDiff > 0) || 
+                    (dirXDiff < 0 && dirYDiff < 0)
+                ) {
+                    trend = "Progression accélérée (vecteur croissant)";
+                    
+                    // Calculer un facteur d'accélération basé sur le rapport des distances
+                    // entre le dernier et le premier vecteur
+                    if (firstVector.distance > 0) {
+                        accelerationFactor = lastVector.distance / firstVector.distance;
+                    } else {
+                        accelerationFactor = 1.2; // Valeur par défaut si firstVector.distance est 0
+                    }
+                    
+                    // Limiter le facteur d'accélération à des valeurs raisonnables
+                    accelerationFactor = Math.max(1.05, Math.min(accelerationFactor, 1.5));
+                } else {
+                    trend = "Progression variable";
+                    
+                    // Calculer un facteur d'accélération moyen
+                    let sumRatio = 0;
+                    let count = 0;
+                    
+                    for (let i = 1; i < vectors.length; i++) {
+                        if (vectors[i-1].distance > 0) {
+                            sumRatio += vectors[i].distance / vectors[i-1].distance;
+                            count++;
+                        }
+                    }
+                    
+                    if (count > 0) {
+                        accelerationFactor = sumRatio / count;
+                    } else {
+                        accelerationFactor = 1.2; // Valeur par défaut
+                    }
+                    
+                    // Limiter le facteur d'accélération à des valeurs raisonnables
+                    accelerationFactor = Math.max(1.05, Math.min(accelerationFactor, 1.5));
+                }
+            } else {
+                trend = "Un seul vecteur disponible, progression supposée accélérée";
+                accelerationFactor = 1.2; // Valeur par défaut pour un seul vecteur
+            }
+            
+            return {
+                avgDistance: avgDistance,
+                avgDirX: avgDirX,
+                avgDirY: avgDirY,
+                trend: trend,
+                accelerationFactor: accelerationFactor
+            };
+        }
+        
+        // Fonction pour calculer les intersections manquantes par prolongement géométrique
+        function calculateGeometricExtension(directResults, vectors, latitude) {
+            // Copier les résultats directs
+            const allResults = [...directResults];
+            
+            // Si nous n'avons pas assez de vecteurs ou de résultats, on ne peut pas faire de prolongement
+            if (vectors.length === 0 || directResults.length < 2) {
+                return allResults;
+            }
+            
+            // Récupérer les hauteurs déjà calculées
+            const calculatedHeights = new Set(directResults.map(r => r.hauteur));
+            
+            // Déterminer les vecteurs à utiliser pour l'extrapolation
+            let extrapolationVectors = [];
+            
+            // Stratégie: Utiliser les vecteurs des points les plus bas (proches de l'horizon)
+            // car ils sont plus pertinents pour l'extrapolation vers les hauteurs négatives
+            const lowestPoints = directResults.filter(r => r.hauteur <= 24 && r.hauteur > 0);
+            
+            if (lowestPoints.length >= 2) {
+                // Créer des vecteurs à partir des points les plus bas
+                for (let i = 0; i < lowestPoints.length - 1; i++) {
+                    const p1 = lowestPoints[i];
+                    const p2 = lowestPoints[i+1];
+                    
+                    const dh = p1.hauteur - p2.hauteur;
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    
+                    extrapolationVectors.push({
+                        dh: dh,
+                        dx: dx,
+                        dy: dy,
+                        dirX: dx / dh,
+                        dirY: dy / dh,
+                        distance: Math.sqrt(dx*dx + dy*dy)
+                    });
+                }
+            } else {
+                // Utiliser les vecteurs existants
+                extrapolationVectors = vectors.map(v => ({
+                    dh: v.dh,
+                    dx: v.dx,
+                    dy: v.dy,
+                    dirX: v.dirX,
+                    dirY: v.dirY,
+                    distance: v.distance
+                }));
+            }
+            
+            // Analyser la progression pour obtenir un facteur d'accélération
+            const progressionAnalysis = analyzeVectorProgression(extrapolationVectors);
+            const accelerationFactor = progressionAnalysis.accelerationFactor;
+            
+            // Calculer le vecteur moyen pour l'extrapolation
+            let avgDirX = 0;
+            let avgDirY = 0;
+            
+            for (const v of extrapolationVectors) {
+                avgDirX += v.dirX;
+                avgDirY += v.dirY;
+            }
+            
+            avgDirX /= extrapolationVectors.length;
+            avgDirY /= extrapolationVectors.length;
+            
+            // Ajuster les vecteurs pour les basses latitudes
+            const isLowLatitude = Math.abs(latitude) < 5;
+            
+            if (isLowLatitude) {
+                // Cas spécial pour les latitudes très basses
+                // Aux basses latitudes, x_gauche reste proche de -6 pour les hauteurs négatives
+                const xAdjustFactor = 0.01;
+                avgDirX = xAdjustFactor * Math.sign(avgDirX);
+                
+                // La composante Y doit augmenter en amplitude pour les hauteurs négatives
+                // À l'équateur, viser des valeurs avec une accélération géométrique
+                // plutôt qu'une progression linéaire
+                avgDirY = 0.16667; // valeur de base pour le taux de variation
+            }
+            
+            // Calculer les hauteurs manquantes
+            const allHeights = Array.from({ length: 14 }, (_, i) => 60 - i * 6);
+            
+            // Pour chaque hauteur non calculée, essayer de la calculer par prolongement
+            for (const h of allHeights) {
+                // Sauter les hauteurs déjà calculées
+                if (calculatedHeights.has(h)) {
+                    continue;
+                }
+                
+                // Sauter le cas particulier de l'horizon (0°)
+                if (h === 0) {
+                    continue;
+                }
+                
+                // Trouver le point calculé le plus proche avec une hauteur supérieure
+                let basePoint = null;
+                let closestDiff = Infinity;
+                
+                for (const r of directResults) {
+                    // Pour les hauteurs positives, chercher une hauteur supérieure
+                    // Pour les hauteurs négatives, chercher la hauteur la plus basse disponible
+                    if ((h > 0 && r.hauteur > h) || (h < 0 && r.hauteur > 0)) {
+                        const diff = Math.abs(r.hauteur - h);
+                        if (diff < closestDiff) {
+                            closestDiff = diff;
+                            basePoint = r;
+                        }
+                    }
+                }
+                
+                // Si nous n'avons pas trouvé de point de base, utiliser le point de l'horizon (0°)
+                if (!basePoint) {
+                    basePoint = directResults.find(r => r.hauteur === 0);
+                    
+                    // Si même l'horizon n'est pas disponible, sauter cette hauteur
+                    if (!basePoint) {
+                        continue;
+                    }
+                }
+                
+                // Calculer le point par prolongement géométrique
+                // avec accélération progressive pour les hauteurs négatives
+                
+                if (h < 0 && basePoint.hauteur === 0) {
+                    // Pour les hauteurs négatives depuis l'horizon (0°)
+                    
+                    // Trouver les derniers points positifs pour établir la tendance
+                    const positivePoints = directResults.filter(r => r.hauteur > 0);
+                    positivePoints.sort((a, b) => a.hauteur - b.hauteur); // Trier par hauteur croissante
+                    
+                    if (positivePoints.length >= 2) {
+                        // Utiliser les deux points les plus bas pour déterminer la direction initiale
+                        const p1 = positivePoints[0]; // Point le plus bas
+                        const p2 = positivePoints.length > 1 ? positivePoints[1] : positivePoints[0];
+                        
+                        const initialDirX = (p1.x - p2.x) / (p2.hauteur - p1.hauteur);
+                        const initialDirY = (p1.y - p2.y) / (p2.hauteur - p1.hauteur);
+                        
+                        // Calculer les coordonnées en appliquant une accélération progressive
+                        let currentX = basePoint.x;
+                        let currentY = basePoint.y;
+                        let currentScale = 1.0;
+                        
+                        // Pas de 1° pour une progression plus lisse
+                        for (let step = 1; step <= Math.abs(h); step++) {
+                            // Augmenter progressivement le facteur d'échelle
+                            if (isLowLatitude) {
+                                // Pour les basses latitudes, accélération plus forte
+                                currentScale *= 1.05;
+                            } else {
+                                currentScale *= Math.pow(accelerationFactor, 1/6); // 1/6 car les pas sont de 6°
+                            }
+                            
+                            // Appliquer le déplacement avec le facteur d'échelle actuel
+                            if (isLowLatitude) {
+                                // Pour les basses latitudes, X varie peu mais Y progresse
+                                currentX -= avgDirX * currentScale;
+                                currentY -= avgDirY * currentScale;
+                            } else {
+                                // Pour les autres latitudes, suivre la tendance naturelle
+                                currentX += initialDirX * currentScale;
+                                currentY += initialDirY * currentScale;
+                            }
+                        }
+                        
+                        // Ajouter le résultat avec méthode "Prolongé"
+                        allResults.push({
+                            hauteur: h,
+                            x: currentX,
+                            y: currentY,
+                            methode: "Prolongé"
+                        });
+                    } else {
+                        // Fallback si nous n'avons pas assez de points positifs
+                        // Calculer les nouvelles coordonnées avec accélération géométrique
+                        
+                        // Première méthode: accélération simple
+                        const steps = Math.abs(h) / 6; // Nombre de pas de 6°
+                        const factor = Math.pow(accelerationFactor, steps);
+                        
+                        // Appliquer une accélération non-linéaire
+                        const x = basePoint.x + avgDirX * Math.abs(h) * factor;
+                        const y = basePoint.y + avgDirY * h * factor; // h est négatif donc y diminue
+                        
+                        // Ajouter le résultat avec méthode "Prolongé"
+                        allResults.push({
+                            hauteur: h,
+                            x: x,
+                            y: y,
+                            methode: "Prolongé"
+                        });
+                    }
+                } else {
+                    // Pour les autres hauteurs (positives ou négatives avec un autre point de base)
+                    
+                    // Calculer la différence de hauteur
+                    const dh = basePoint.hauteur - h;
+                    
+                    // Appliquer un facteur d'accélération progressif selon la distance
+                    const steps = Math.abs(dh) / 6; // Nombre de pas de 6°
+                    const factor = Math.pow(accelerationFactor, steps);
+                    
+                    // Calculer les nouvelles coordonnées avec accélération
+                    const x = basePoint.x + avgDirX * dh * factor;
+                    const y = basePoint.y + avgDirY * dh * factor;
+                    
+                    // Ajouter le résultat avec méthode "Prolongé"
+                    allResults.push({
+                        hauteur: h,
+                        x: x,
+                        y: y,
+                        methode: "Prolongé"
+                    });
+                }
+            }
+            
+            // Trier les résultats par hauteur décroissante
+            allResults.sort((a, b) => b.hauteur - a.hauteur);
+            return allResults;
+        }
+        
+        // Fonction pour afficher l'analyse vectorielle
+        function displayVectorAnalysis(vectors) {
+            const vectorsBody = document.getElementById('vectors-body');
+            vectorsBody.innerHTML = '';
+            
+            for (const v of vectors) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${v.point1}° → ${v.point2}°</td>
+                    <td>${v.distance.toFixed(6)}</td>
+                    <td>${v.dirX.toFixed(6)}</td>
+                    <td>${v.dirY.toFixed(6)}</td>
+                `;
+                vectorsBody.appendChild(row);
+            }
+        }
+        
+        // Fonction pour afficher tous les résultats
+        function displayResults(results) {
+            const resultsBody = document.getElementById('results-body');
+            resultsBody.innerHTML = '';
+            
+            for (const r of results) {
+                const row = document.createElement('tr');
+                
+                // Appliquer une couleur selon la méthode
+                let methodClass = '';
+                if (r.methode === "Calculé") {
+                    methodClass = 'style="color: black;"';
+                } else if (r.methode === "Prolongé") {
+                    methodClass = 'style="color: #2a6099; font-weight: bold;"';
+                } else {
+                    methodClass = 'style="color: #808080;"';
+                }
+                
+                row.innerHTML = `
+                    <td>${r.hauteur}°</td>
+                    <td>${r.x.toFixed(6)}</td>
+                    <td>${r.y.toFixed(6)}</td>
+                    <td ${methodClass}>${r.methode}</td>
+                `;
+                resultsBody.appendChild(row);
+            }
+        }
+    </script>
+
+
+<script>
+    function sendPointsToServer(points) {
+        // Ne garder que les points -6, -12 et -18
+        const filtered = points.filter(p => [-6, -12, -18].includes(p.hauteur));
+    
+        // Construire un objet avec les hauteurs comme clés
+        const payload = {};
+        filtered.forEach(p => {
+            payload[p.hauteur] = { x: p.x, y: p.y };
+        });
+    
+        // Envoyer les données à Flask
+        fetch('/points_azimut_90', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(response => {
+            if (!response.ok) {
+                console.error('Échec de l’envoi des points vers Flask');
+            } else {
+                console.log('Coordonnées envoyées avec succès !');
+            }
+        });
+    }
+    
+    // Modifier calculateGeometrically pour appeler sendPointsToServer
+    const originalCalculate = calculateGeometrically;
+    calculateGeometrically = function () {
+        originalCalculate(); // faire les calculs
+        const tbody = document.getElementById("results-body");
+        const rows = tbody.querySelectorAll("tr");
+        const points = [];
+    
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            if (cells.length >= 4) {
+                const hauteur = parseFloat(cells[0].textContent);
+                const x = parseFloat(cells[1].textContent);
+                const y = parseFloat(cells[2].textContent);
+                points.push({ hauteur, x, y });
+            }
+        });
+    
+        sendPointsToServer(points);
+    };
+</script>
+
+
+<script>
+    // Fonction pour envoyer les points calculés au serveur Flask
+    function sendPointsToServer(points) {
+        // Ne garder que les points -6, -12 et -18
+        const filtered = points.filter(p => [-6, -12, -18].includes(p.hauteur));
+    
+        // Construire un objet avec les hauteurs comme clés
+        const payload = {};
+        filtered.forEach(p => {
+            payload[p.hauteur] = { x: p.x, y: p.y };
+        });
+    
+        // Envoyer les données à Flask
+        fetch('/points_azimut_90', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(response => {
+            if (!response.ok) {
+                console.error('Échec de l’envoi des points vers Flask');
+            } else {
+                console.log('Coordonnées envoyées avec succès !');
+            }
+        });
+    }
+
+    // Modifier la fonction calculateGeometrically pour appeler sendPointsToServer
+    const originalCalculate = calculateGeometrically;
+    calculateGeometrically = function () {
+        originalCalculate(); // faire les calculs
+        const tbody = document.getElementById("results-body");
+        const rows = tbody.querySelectorAll("tr");
+        const points = [];
+    
+        // Récupérer les coordonnées des résultats dans le tableau
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            if (cells.length >= 4) {
+                const hauteur = parseFloat(cells[0].textContent);
+                const x = parseFloat(cells[1].textContent);
+                const y = parseFloat(cells[2].textContent);
+                points.push({ hauteur, x, y });
+            }
+        });
+    
+        // Envoyer les points à Flask
+        sendPointsToServer(points);
+        
+        // Afficher les points sur le SVG
+        displayPointsOnSVG(points);
+    };
+
+    // Fonction pour afficher les points dans le SVG
+    function displayPointsOnSVG(points) {
+        // Sélectionner l'élément SVG où afficher les points
+        const svg = document.getElementById("svg-canvas"); 
+
+        points.forEach(point => {
+            // Créer un élément <circle> pour chaque point
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", point.x);  // Coordonnée x du point
+            circle.setAttribute("cy", point.y);  // Coordonnée y du point
+            circle.setAttribute("r", 5);  // Rayon du point (5px)
+            circle.setAttribute("fill", "red");  // Couleur du point
+            svg.appendChild(circle);  // Ajouter le point au SVG
+        });
+    }
+</script>
+ 
+
+
+</body>
+</html>

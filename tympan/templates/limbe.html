@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Anneau extérieur</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-family: century gothic, arial, calibri;
+        }
+        h1 {
+            color: blue;
+            text-align: center;
+            margin: 10px 0;
+        }
+        svg {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+        }
+        .back-button {
+            position: absolute;
+            color: red;
+            background-color: white;
+            font-family: century gothic, arial, calibri;
+            font-size: 1.5em;
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 10px;
+            margin-left: 20px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            width: 70px;
+            bottom: 10px;
+        }
+        .back-button:hover {
+            color: white;
+            background-color: red;
+        }
+
+        #info-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 6px 10px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            width: 160px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Anneau extérieur</h1>
+
+    <div id="info-box">
+        x: <span id="x">0.00</span><br>
+        y: <span id="y">0.00</span><br>
+        distance: <span id="dist">0.00</span>
+    </div>
+
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="-13 -13 30 30" width="700" height="700" onmousemove="afficherCoord(event)"> 
+
+        <!-- Cadre -->
+        <g id="cadre">
+            <rect x="-13" y="-13" width="26" height="26"
+                  stroke="black" stroke-width="0.05" fill="none"/>
+        </g>
+
+        <!-- Contenu -->
+        <g id="contenu" transform="scale(0.9) translate(0, 0)">
+            <circle cx="0" cy="0" r="12.35" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="12.1" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="11.7" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="11.1" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.85" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.5" stroke="black" stroke-width="0.05" fill="none" />
+        </g>
+        
+    </svg>
+
+    <a href="{{ url_for('tympan.menu') }}" class="back-button">Retour</a>
+
+    <script>
+        window.onload = function() {
+            const svgNS = "http://www.w3.org/2000/svg";
+            const contenu = document.getElementById("contenu");
+
+            // ⚫ Subdivisions noires tous les 1° sauf multiples de 5
+            const r_in1 = 12.1;
+            const r_out1 = 12.35;
+            for (let angle = 0; angle < 360; angle++) {
+                if (angle % 5 !== 0) {
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const x1 = r_in1 * Math.cos(rad);
+                    const y1 = r_in1 * Math.sin(rad);
+                    const x2 = r_out1 * Math.cos(rad);
+                    const y2 = r_out1 * Math.sin(rad);
+                    const line = document.createElementNS(svgNS, "line");
+                    line.setAttribute("x1", x1.toFixed(3));
+                    line.setAttribute("y1", y1.toFixed(3));
+                    line.setAttribute("x2", x2.toFixed(3));
+                    line.setAttribute("y2", y2.toFixed(3));
+                    line.setAttribute("stroke", "black");
+                    line.setAttribute("stroke-width", "0.05");
+                    contenu.appendChild(line);
+                }
+            }
+
+            // 🔴 Subdivisions rouges tous les 5°, sauf multiples de 15°
+            const r_in2 = 11.7;
+            const r_out2 = 12.35;
+            for (let angle = 0; angle < 360; angle += 5) {
+                if (angle % 15 !== 0) {
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const x1 = r_in2 * Math.cos(rad);
+                    const y1 = r_in2 * Math.sin(rad);
+                    const x2 = r_out2 * Math.cos(rad);
+                    const y2 = r_out2 * Math.sin(rad);
+                    const line = document.createElementNS(svgNS, "line");
+                    line.setAttribute("x1", x1.toFixed(3));
+                    line.setAttribute("y1", y1.toFixed(3));
+                    line.setAttribute("x2", x2.toFixed(3));
+                    line.setAttribute("y2", y2.toFixed(3));
+                    line.setAttribute("stroke", "red");
+                    line.setAttribute("stroke-width", "0.05");
+                    contenu.appendChild(line);
+                }
+            }
+
+            // 🟢 Subdivisions vertes tous les 1.25°, sauf multiples de 3.75° et 15°
+            const r_in3 = 10.85;
+            const r_out3 = 11.1;
+            for (let angle = 0; angle < 360; angle += 1.25) {
+                const multiple375 = Math.abs((angle / 3.75) - Math.round(angle / 3.75)) < 1e-6;
+                const multiple15 = Math.abs((angle / 15) - Math.round(angle / 15)) < 1e-6;
+                if (!multiple375 && !multiple15) {
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const x1 = r_in3 * Math.cos(rad);
+                    const y1 = r_in3 * Math.sin(rad);
+                    const x2 = r_out3 * Math.cos(rad);
+                    const y2 = r_out3 * Math.sin(rad);
+                    const line = document.createElementNS(svgNS, "line");
+                    line.setAttribute("x1", x1.toFixed(3));
+                    line.setAttribute("y1", y1.toFixed(3));
+                    line.setAttribute("x2", x2.toFixed(3));
+                    line.setAttribute("y2", y2.toFixed(3));
+                    line.setAttribute("stroke", "green");
+                    line.setAttribute("stroke-width", "0.05");
+                    contenu.appendChild(line);
+                }
+            }
+
+            // ⚫ Subdivisions noires tous les 3.75°, sauf multiples de 15°
+            const r_in4 = 10.5;
+            const r_out4 = 11.1;
+            for (let angle = 0; angle < 360; angle += 3.75) {
+                const multiple15 = Math.abs((angle / 15) - Math.round(angle / 15)) < 1e-6;
+                if (!multiple15) {
+                    const rad = (angle - 90) * Math.PI / 180;
+                    const x1 = r_in4 * Math.cos(rad);
+                    const y1 = r_in4 * Math.sin(rad);
+                    const x2 = r_out4 * Math.cos(rad);
+                    const y2 = r_out4 * Math.sin(rad);
+                    const line = document.createElementNS(svgNS, "line");
+                    line.setAttribute("x1", x1.toFixed(3));
+                    line.setAttribute("y1", y1.toFixed(3));
+                    line.setAttribute("x2", x2.toFixed(3));
+                    line.setAttribute("y2", y2.toFixed(3));
+                    line.setAttribute("stroke", "black");
+                    line.setAttribute("stroke-width", "0.05");
+                    contenu.appendChild(line);
+                }
+            }
+
+            // 🔴 Subdivisions rouges tous les 15° (de 10.5 à 12.35)
+            const r_in5 = 10.5;
+            const r_out5 = 12.35;
+            for (let angle = 0; angle < 360; angle += 15) {
+                const rad = (angle - 90) * Math.PI / 180;
+                const x1 = r_in5 * Math.cos(rad);
+                const y1 = r_in5 * Math.sin(rad);
+                const x2 = r_out5 * Math.cos(rad);
+                const y2 = r_out5 * Math.sin(rad);
+                const line = document.createElementNS(svgNS, "line");
+                line.setAttribute("x1", x1.toFixed(3));
+                line.setAttribute("y1", y1.toFixed(3));
+                line.setAttribute("x2", x2.toFixed(3));
+                line.setAttribute("y2", y2.toFixed(3));
+                line.setAttribute("stroke", "red");
+                line.setAttribute("stroke-width", "0.05");
+                contenu.appendChild(line);
+            }
+        };
+
+        function afficherCoord(evt) {
+            const svg = evt.target.ownerSVGElement || evt.target;
+            const pt = svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+            const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const scale = 0.9;
+            const x_corr = cursorpt.x / scale;
+            const y_corr = cursorpt.y / scale;
+            const x = x_corr.toFixed(2);
+            const y = (-y_corr).toFixed(2);
+            const dist = Math.sqrt(x_corr**2 + y_corr**2).toFixed(2);
+            document.getElementById("x").textContent = x;
+            document.getElementById("y").textContent = y;
+            document.getElementById("dist").textContent = dist;
+        }
+    </script>
+
+</body>
+</html>

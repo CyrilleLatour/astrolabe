@@ -1,0 +1,76 @@
+<!-- Horizon (almucantarat 0°) -->
+{% if horizon %}
+    {% if horizon.type == 'ligne_horizontale' %}
+        <!-- À l'équateur, l'horizon est une ligne horizontale -->
+        <line
+            x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+            y1="{{ 250 }}"
+            x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+            y2="{{ 250 }}"
+            stroke="{{ horizon.style.stroke }}"
+            stroke-width="{{ horizon.style.stroke_width }}"
+            stroke-opacity="{{ horizon.style.stroke_opacity }}"
+        />
+    {% else %}
+        <!-- Pour toutes les autres latitudes, l'horizon est un cercle -->
+        <circle
+            cx="300"
+            cy="{{ 250 - (horizon.cy * facteur) }}"
+            r="{{ horizon.rayon * facteur }}"
+            stroke="{{ horizon.style.stroke }}"
+            stroke-width="{{ horizon.style.stroke_width }}"
+            stroke-opacity="{{ horizon.style.stroke_opacity }}"
+            fill="{{ horizon.style.fill }}"
+        />
+    {% endif %}
+{% endif %}
+
+<!-- Almucantarats de 5° à 80° -->
+{% if almucantarats %}
+    {% for alm in almucantarats %}
+        {% if alm.type == 'ligne_horizontale' %}
+            <!-- À l'équateur, les almucantarats sont des lignes horizontales -->
+            <line
+                x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                y1="{{ 250 - alm.y_offset }}"
+                x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                y2="{{ 250 - alm.y_offset }}"
+                stroke="{{ alm.style.stroke }}"
+                stroke-width="{{ alm.style.stroke_width }}"
+                stroke-opacity="{{ alm.style.stroke_opacity }}"
+            />
+        {% else %}
+            <!-- Pour toutes les autres latitudes, les almucantarats sont des cercles -->
+            <circle
+                cx="300"
+                cy="{{ 250 - (alm.cy * facteur) }}"
+                r="{{ alm.rayon * facteur }}"
+                stroke="{{ alm.style.stroke }}"
+                stroke-width="{{ alm.style.stroke_width }}"
+                stroke-opacity="{{ alm.style.stroke_opacity }}"
+                fill="{{ alm.style.fill }}"
+            />
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<g>
+<!-- Points d’intersection entre l’horizon et le Tropique du Capricorne -->
+<g id="points-intersection-capricorne">
+    {% if horizon and fixed_radius_capricorne %}
+        <!-- Point gauche -->
+        <circle
+            cx="{{ 300 - (fixed_radius_capricorne * facteur) }}"
+            cy="{{ 250 - (horizon.cy * facteur) }}"
+            r="3"
+            fill="black"
+        />
+        <!-- Point droit -->
+        <circle
+            cx="{{ 300 + (fixed_radius_capricorne * facteur) }}"
+            cy="{{ 250 - (horizon.cy * facteur) }}"
+            r="3"
+            fill="black"
+        />
+    {% endif %}
+</g>

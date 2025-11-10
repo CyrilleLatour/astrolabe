@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Dos de l'astrolabe (II)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin: 20px 0 10px 0;
+      font-size: 2em;
+      color:blue;
+      text-align: center;
+    }
+
+    .cadre-analemme {
+      background: white;
+      border: 2px solid black;
+      width: 600px;
+      height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    svg {
+      width: 95%;
+      height: 95%;
+    }
+
+    .back-button {
+      position: fixed;
+      color: red;
+      background-color: white;
+      font-family: century gothic, arial, calibri;
+      font-size: 1.5em;
+      padding: 10px;
+      border: 1px solid red;
+      border-radius: 10px;
+      left: 20px;
+      margin-bottom: 20px;
+      text-decoration: none;
+      width: 100px;
+      bottom: 10px;
+    }
+
+    .back-button:hover {
+      color: white;
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Dos de l'astrolabe (II)</h1>
+
+  <!-- ANALEMME -->
+
+  <div class="cadre-analemme">
+    <!-- SVG de l'analemme -->
+    <svg id="view" viewBox="-5.2 -5.2 10.4 10.4" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+      <!-- RepÃ¨res -->
+      <g id="grid" stroke="#e5e5e5" stroke-width="0.02" fill="none"></g>
+
+      <!-- Disque de rÃ©fÃ©rence -->
+      <circle id="disk" r="4.5" fill="none" stroke="black" stroke-width="0.03" />
+
+      <!-- Axes & graduations -->
+      <g id="axes" font-size="0.25" fill="#666" stroke="#bbb" stroke-width="0.02"></g>
+      <g id="markers" font-size="0.28" fill="#222" stroke="none"></g>
+
+      <!-- Courbe de l'analemme-->
+      <path id="analemma" d="" fill="none" stroke="#0b66ff" stroke-width="0.05" stroke-linecap="round" />
+    </svg>
+  </div>
+
+  <script>
+(function(){
+  // ===== Util =====
+  const NS = "http://www.w3.org/2000/svg";
+  const DEG = Math.PI/180, RAD2DEG = 180/Math.PI, R_DISK = 4.25;
+
+  // NOAA: dÃ©clinaison (rad) + Ã©quation du temps (min)
+  function solarDeclinationAndEOT(dayOfYear, secondsOfDay){
+    const fracDay = (secondsOfDay/86400) - 0.5;
+    const g = 2*Math.PI/365 * (dayOfYear - 1 + fracDay);
+    const EOT = 229.18 * (
+      0.000075 + 0.001868*Math.cos(g) - 0.032077*Math.sin(g)
+      - 0.014615*Math.cos(2*g) - 0.040849*Math.sin(2*g)
+    );
+    const delta =
+      0.006918 - 0.399912*Math.cos(g) + 0.070257*Math.sin(g)
+      - 0.006758*Math.cos(2*g) + 0.000907*Math.sin(2*g)
+      - 0.002697*Math.cos(3*g) + 0.00148*Math.sin(3*g);
+    return { delta, EOT };
+  }
+
+  // Rendre la fonction accessible globalement
+  window.solarDeclinationAndEOT = solarDeclinationAndEOT;
+
+  function line(x1,y1,x2,y2, stroke="#444", w="0.05"){
+    const el = document.createElementNS(NS,"line");
+    el.setAttribute("x1", x1); el.setAttribute("y1", y1);
+    el.setAttribute("x2", x2); el.setAttribute("y2", y2);
+    el.setAttribute("stroke", stroke); el.setAttribute("stroke-width", w);
+    return el;
+  }
+  function circle(r, stroke="#ccc", w="0.03", fill="none"){
+    const el = document.createElementNS(NS,"circle");
+    el.setAttribute("r", r); el.setAttribute("stroke", stroke);
+    el.setAttribute("stroke-width", w); el.setAttribute("fill", fill);
+    return el;
+  }
+  function text(x,y,txt,size="0.25",fill="#666",anchor="middle"){
+    const t = document.createElementNS(NS,"text");
+    t.setAttribute("x", x); t.setAttribute("y", y);
+    t.setAttribute("text-anchor", anchor);
+    t.setAttribute("font-size", size);
+    t.setAttribute("fill", fill);
+    t.textContent = txt;
+    return t;
+  }
+
+  function drawGrid(svg){
+    const grid = document.getElementById("grid");
+    while(grid.firstChild) grid.removeChild(grid.firstChild);
+
+    // axes
+    grid.appendChild(line(-4.5,0,4.5,0,"#bbb","0.02"));
+    grid.appendChild(line(0,-4.5,0,4.5,"#bbb","0.02"));
+
+
+ 
+ // graduations EOT (axe X, tous les 5 min de -15 à +20)
+for (let m = -15; m <= 20; m += 5) {
+  const x = m * 0.15; // 1 min = 0.15 unité
+  if (Math.abs(x) <= R_DISK) {
+    // ✅ Graduation réduite (1/3 plus petite)
+    grid.appendChild(line(x, -0.1, x, 0.1, "#444", "0.02"));
+    // ✅ Texte SOUS l’axe X et en NOIR
+    const label = document.createElementNS(NS, "text");
+    label.setAttribute("x", x);
+    label.setAttribute("y", 0.35);            
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("font-size", "0.25");
+    label.setAttribute("fill", "black");     
+    label.textContent = m;
+    svg.appendChild(label);
+  }
+}
+// ✅ Subdivisions toutes les 1 minute (plus petites, sans labels)
+for (let m = -15; m <= 20; m++) {
+  if (m % 5 === 0) continue; // éviter les ticks déjà tracés
+  const x = m * 0.15;
+  if (Math.abs(x) <= R_DISK) {
+    // Tick plus petit (moitié de la taille)
+    grid.appendChild(line(x, -0.05, x, 0.05, "#444", "0.015"));
+  }
+}
+
+
+// graduations Déclinaison (axe Y, tous les 5° de -25° à +25°)
+for (let d = -25; d <= 25; d += 5) {
+  const y = -(d * 0.15);
+  if (Math.abs(y) <= R_DISK) {
+    // ✅ Graduation réduite (1/3 plus petite)
+    grid.appendChild(line(-0.1, y, 0.1, y, "#444", "0.02"));
+    // ✅ Texte à droite de l’axe Y, en NOIR
+    const label = document.createElementNS(NS, "text");
+    label.setAttribute("x", 0.2);            
+    label.setAttribute("y", y + 0.1);         
+    label.setAttribute("text-anchor", "start");
+    label.setAttribute("font-size", "0.25");
+    label.setAttribute("fill", "black");     
+    label.textContent = d + "°";
+    svg.appendChild(label);
+  }
+}
+// ✅ Subdivisions toutes les 1° (plus petites, sans labels)
+for (let d = -25; d <= 25; d++) {
+  if (d % 5 === 0) continue; // éviter les ticks déjà tracés
+  const y = -(d * 0.15);
+  if (Math.abs(y) <= R_DISK) {
+    // Tick plus petit (moitié de la taille)
+    grid.appendChild(line(-0.05, y, 0.05, y, "#444", "0.015"));
+  }
+}
+
+
+// Rectangle contour gris (EOT -15 → +17, DEC 0° → -24°)
+const rect = document.createElementNS(NS, "rect");
+rect.setAttribute("x", -2.25);
+rect.setAttribute("y", 0);
+rect.setAttribute("width", 2.55 - (-2.25));
+rect.setAttribute("height", 3.6 - 0);
+rect.setAttribute("fill", "none");        // pas de remplissage
+rect.setAttribute("stroke", "gray");      // contour gris
+rect.setAttribute("stroke-width", "0.02");
+svg.appendChild(rect);
+
+// === Quadrillage interne toutes les 1 unité ===
+// (1 min ou 1° = 0.15 en coordonnées SVG)
+for (let x = -2.25 + 0.15; x < 2.55; x += 0.15) {
+  const lineV = document.createElementNS(NS, "line");
+  lineV.setAttribute("x1", x);
+  lineV.setAttribute("y1", 0);
+  lineV.setAttribute("x2", x);
+  lineV.setAttribute("y2", 3.6);
+  lineV.setAttribute("stroke", "lightgray");
+  lineV.setAttribute("stroke-width", "0.005");
+  svg.appendChild(lineV);
+}
+for (let y = 0 + 0.15; y < 3.6; y += 0.15) {
+  const lineH = document.createElementNS(NS, "line");
+  lineH.setAttribute("x1", -2.25);
+  lineH.setAttribute("y1", y);
+  lineH.setAttribute("x2", 2.55);
+  lineH.setAttribute("y2", y);
+  lineH.setAttribute("stroke", "lightgray");
+  lineH.setAttribute("stroke-width", "0.005");
+  svg.appendChild(lineH);
+}
+
+// Rectangle contour gris (EOT -8 → +8, DEC 0° → +24°)
+const rectHaut = document.createElementNS(NS, "rect");
+rectHaut.setAttribute("x", -1.2);
+rectHaut.setAttribute("y", -3.6);   // vers le haut (déclinaison +24°)
+rectHaut.setAttribute("width", 2.4); // de -1.2 à +1.2
+rectHaut.setAttribute("height", 3.6); // de -3.6 à 0
+rectHaut.setAttribute("fill", "none");
+rectHaut.setAttribute("stroke", "gray");
+rectHaut.setAttribute("stroke-width", "0.02");
+svg.appendChild(rectHaut);
+
+// === Quadrillage interne toutes les 1 unité ===
+// (1 min ou 1° = 0.15 en coordonnées SVG)
+
+// Lignes verticales
+for (let x = -1.2 + 0.15; x < 1.2; x += 0.15) {
+  const lineV = document.createElementNS(NS, "line");
+  lineV.setAttribute("x1", x);
+  lineV.setAttribute("y1", 0);
+  lineV.setAttribute("x2", x);
+  lineV.setAttribute("y2", -3.6);
+  lineV.setAttribute("stroke", "lightgray");
+  lineV.setAttribute("stroke-width", "0.005");
+  svg.appendChild(lineV);
+}
+
+// Lignes horizontales
+for (let y = -0.15; y > -3.6; y -= 0.15) {
+  const lineH = document.createElementNS(NS, "line");
+  lineH.setAttribute("x1", -1.2);
+  lineH.setAttribute("y1", y);
+  lineH.setAttribute("x2", 1.2);
+  lineH.setAttribute("y2", y);
+  lineH.setAttribute("stroke", "lightgray");
+  lineH.setAttribute("stroke-width", "0.005");
+  svg.appendChild(lineH);
+}
+
+
+
+    // -----------------------
+    // cercles 5..25 (commentÃ©s)
+    /*
+    for(let val=5; val<=25; val+=5){
+      const r = val*0.15;
+      if(r<=R_DISK) grid.appendChild(circle(r,"#ccc","0.03","none"));
+    }
+    */
+
+    // graduations X (EOT) et nombres (commentÃ©s)
+    /*
+    const eotTicks = [-25,-20,-15,-10,-5,0,5,10,15,20,25];
+    for(const m of eotTicks){
+      const x = m*0.15;
+      if(Math.abs(x)<=R_DISK){
+        grid.appendChild(line(x,-0.2,x,0.2,"#444","0.05"));
+        grid.appendChild(text(x,-0.4, String(m), "0.25", "#666", "middle"));
+      }
+    }
+    */
+
+    // graduations Y (dec) et nombres (commentÃ©s)
+    /*
+    const decTicks = [-25,-20,-15,-10,-5,0,5,10,15,20,25];
+    for(const d of decTicks){
+      const y = -d*0.15;
+      if(Math.abs(y)<=R_DISK){
+        grid.appendChild(line(-0.2,y,0.2,y,"#444","0.05"));
+        grid.appendChild(text(0.4,y, String(d), "0.25", "#666", "start"));
+      }
+    }
+    */
+  }
+
+
+
+  function pathFromPoints(points){
+    if(!points.length) return "";
+    let d = `M ${points[0].x.toFixed(4)} ${points[0].y.toFixed(4)}`;
+    for(let i=1;i<points.length;i++){
+      const p = points[i];
+      d += ` L ${p.x.toFixed(4)} ${p.y.toFixed(4)}`;
+    }
+    return d;
+  }
+
+  function drawAnalemma(){
+  const points = [];
+  for(let day=1; day<=365; day++){
+    const { delta, EOT } = solarDeclinationAndEOT(day, 12*3600);
+    const x = EOT * 0.15;                    // axe X : Équation du Temps (min) → échelle 0.15
+    const y = -(delta * 180/Math.PI) * 0.15; // axe Y : Déclinaison (°), signe - pour + en haut
+    points.push({ x, y });
+  }
+
+// 👉 Ajout : refermer la courbe en revenant au premier point
+  points.push(points[0]);
+
+  const curve = document.getElementById("analemma");
+  if (curve) curve.setAttribute("d", pathFromPoints(points));
+}
+
+
+  function draw(){
+    const svg = document.getElementById("view");
+    if(!svg) return;
+
+    // Grille d'abord
+    drawGrid(svg);
+
+    // Analemme
+    drawAnalemma();
+  }
+
+  // Lance sans attendre (et re-lance quand DOM prÃªt au cas oÃ¹)
+  try { draw(); } catch(e) { console.error(e); }
+  document.addEventListener("DOMContentLoaded", function(){ try { draw(); } catch(e) { console.error(e); }});
+})();
+</script>
+
+
+
+
+
+<!-- DECLINAISON DU SOLEIL -->
+
+<!-- CALCUL DE LA CORDE -->
+<!-- cercle extÃ©rieur -->
+<script>
+(function(){
+  const svg = document.getElementById('view');
+  if(!svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('transform', 'scale(1, -1)');
+  
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', 'M 4.3 0 A 4.3 4.3 0 0 1 0 4.3');
+  path.setAttribute('stroke', 'black');
+  path.setAttribute('stroke-width', '0.02');
+  path.setAttribute('fill', 'none');
+  
+  g.appendChild(path);
+  svg.appendChild(g);
+})();
+</script>
+
+<!-- cercle intÃ©rieur -->
+<script>
+(function(){
+  const svg = document.getElementById('view');
+  if(!svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('transform', 'scale(1, -1)');
+  
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', 'M 4.1 0 A 4.1 4.1 0 0 1 0 4.1');
+  path.setAttribute('stroke', 'black');
+  path.setAttribute('stroke-width', '0.02');
+  path.setAttribute('fill', 'none');
+  
+  g.appendChild(path);
+  svg.appendChild(g);
+})();
+</script>
+
+<!-- subdivisions -->
+<!-- subdivisions 1Â° -->
+<script>
+(function(){
+  const svg = document.getElementById('view');
+  if(!svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('transform', 'scale(1, -1)');
+
+  const r1 = 4.1;  // rayon intÃ©rieur
+  const r2 = 4.3;  // rayon extÃ©rieur
+
+  // Subdivisions de 0Â° Ã  90Â° avec un pas de 1Â°
+  for(let angle = 0; angle <= 90; angle += 1) {
+    const angleRad = angle * Math.PI / 180;
+    
+    // Points sur le cercle intÃ©rieur
+    const x1 = r1 * Math.cos(angleRad);
+    const y1 = r1 * Math.sin(angleRad);
+    
+    // Points sur le cercle extÃ©rieur
+    const x2 = r2 * Math.cos(angleRad);
+    const y2 = r2 * Math.sin(angleRad);
+    
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'black');
+    line.setAttribute('stroke-width', '0.02');
+    
+    g.appendChild(line);
+  }
+
+  svg.appendChild(g);
+})();
+</script>
+
+<!-- subdivisions 10Â° -->
+<script>
+(function(){
+  const svg = document.getElementById('view');
+  if(!svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('transform', 'scale(1, -1)');
+
+  const r1 = 4.1;  // rayon intÃ©rieur
+  const r2 = 4.5;  // rayon extÃ©rieur
+
+  // Subdivisions de 0Â° Ã  90Â° avec un pas de 10Â°
+  for(let angle = 0; angle <= 90; angle += 10) {
+    const angleRad = angle * Math.PI / 180;
+    
+    // Points sur le cercle intÃ©rieur
+    const x1 = r1 * Math.cos(angleRad);
+    const y1 = r1 * Math.sin(angleRad);
+    
+    // Points sur le cercle extÃ©rieur
+    const x2 = r2 * Math.cos(angleRad);
+    const y2 = r2 * Math.sin(angleRad);
+    
+    const line = document.createElementNS(NS, 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+    line.setAttribute('stroke', 'black');
+    line.setAttribute('stroke-width', '0.03');
+    
+    g.appendChild(line);
+  }
+
+  // Subdivision spÃ©ciale Ã  45Â° de r = 3.9 Ã  r = 4.5
+  const angle45Rad = 45 * Math.PI / 180;
+  const x1_45 = 3.9 * Math.cos(angle45Rad);
+  const y1_45 = 3.9 * Math.sin(angle45Rad);
+  const x2_45 = 4.5 * Math.cos(angle45Rad);
+  const y2_45 = 4.5 * Math.sin(angle45Rad);
+
+  const line45 = document.createElementNS(NS, 'line');
+  line45.setAttribute('x1', x1_45);
+  line45.setAttribute('y1', y1_45);
+  line45.setAttribute('x2', x2_45);
+  line45.setAttribute('y2', y2_45);
+  line45.setAttribute('stroke', 'black');
+  line45.setAttribute('stroke-width', '0.05');
+
+  g.appendChild(line45);
+
+  svg.appendChild(g);
+})();
+</script>
+
+
+
+
+<!-- Ã‰CHELLE RADIANS (0Â°â†'90Â°) â€" 1er QUADRANT, courbe seule -->
+<script>
+(function(){
+  const svg = document.getElementById('view'); if (!svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+
+  // Rayon du disque (#disk)
+  const R = parseFloat((document.getElementById('disk')||{}).getAttribute?.('r')) || 4.5;
+
+  // Groupe Y vers le haut (comme tes autres tracÃ©s)
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('id','echelle-radians-q1');
+  g.setAttribute('transform','scale(1,-1)');
+  svg.appendChild(g);
+
+  // Courbe : r = (R/90) * Î¸_deg, posÃ©e sur le mÃªme angle Î¸ (QI : x>0, y>0)
+  let d = '';
+  for (let deg = 0; deg <= 90; deg += 1) {
+    const th = deg * Math.PI/180;
+    const r  = (R/90) * deg;
+    const x  = r * Math.cos(th);
+    const y  = r * Math.sin(th);
+    d += (deg===0 ? `M ${x.toFixed(4)} ${y.toFixed(4)}`
+                  : ` L ${x.toFixed(4)} ${y.toFixed(4)}`);  
+  }
+
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('style',
+    'stroke:#d12 !important; stroke-width:2px !important; '+
+    'vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round;');
+  g.appendChild(path);
+})();
+</script>
+
+
+<!-- === AJOUT DU TRIANGLE RECTANGLE ET DU RESTE=== -->
+<script>
+(function(){
+  const svg = document.getElementById('view'); 
+  if(!svg) return;
+  const NS = "http://www.w3.org/2000/svg";
+
+  // === Triangle rectangle ===
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('transform', 'scale(1,-1)');
+
+  const points = "-3.9,1.7 -1.7,1.7 -1.7,3.5";
+
+  const triangle = document.createElementNS(NS, 'polygon');
+  triangle.setAttribute("points", points);
+  triangle.setAttribute("fill", "none");
+  triangle.setAttribute("stroke", "black");
+  triangle.setAttribute("stroke-width", "0.025");
+
+  g.appendChild(triangle);
+  svg.appendChild(g);
+
+  // === Arc de cercle pour l'angle ===
+  const gArc = document.createElementNS(NS, 'g');
+  gArc.setAttribute('transform', 'scale(1,-1)');
+
+  const arc = document.createElementNS(NS, 'path');
+  // Arc de rayon 0.6 centré sur le coin de l'angle (-3.9, 1.7)
+  // De 0° à 39.29° (angle de l'hypoténuse)
+  const centerX = -3.9;
+  const centerY = 1.7;
+  const radius = 0.6;
+  const startAngle = 0;
+  const endAngle = 39.29 * Math.PI / 180;
+  
+  const x1 = centerX + radius * Math.cos(startAngle);
+  const y1 = centerY + radius * Math.sin(startAngle);
+  const x2 = centerX + radius * Math.cos(endAngle);
+  const y2 = centerY + radius * Math.sin(endAngle);
+  
+  arc.setAttribute('d', `M ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2}`);
+  arc.setAttribute('fill', 'none');
+  arc.setAttribute('stroke', 'black');
+  arc.setAttribute('stroke-width', '0.03');
+  
+  gArc.appendChild(arc);
+  svg.appendChild(gArc);
+
+  // === texte adjacent ===
+  const text = document.createElementNS(NS, 'text');
+  text.setAttribute("x", -3.5);
+  text.setAttribute("y", -1.3);
+  text.setAttribute("font-size", "0.3");
+  text.setAttribute("fill", "black");
+  text.setAttribute("font-family", "century gothic, arial, calibri");
+  text.textContent = "adjacent";
+  svg.appendChild(text);
+
+  // === texte opposé ===
+  const textOppose = document.createElementNS(NS, 'text');
+  textOppose.setAttribute("x", -1.8);
+  textOppose.setAttribute("y", -2.7);
+  textOppose.setAttribute("font-size", "0.3");
+  textOppose.setAttribute("fill", "black");
+  textOppose.setAttribute("font-family", "century gothic, arial, calibri");
+  textOppose.setAttribute("transform", "rotate(-90, -1.3, -2.6)");
+  textOppose.textContent = "opposé";
+  svg.appendChild(textOppose);
+
+  // === texte hypoténuse ===
+  const textHypotenuse = document.createElementNS(NS, 'text');
+  textHypotenuse.setAttribute("x", -3.7);
+  textHypotenuse.setAttribute("y", -2.8);
+  textHypotenuse.setAttribute("font-size", "0.3");
+  textHypotenuse.setAttribute("fill", "black");
+  textHypotenuse.setAttribute("font-family", "century gothic, arial, calibri");
+  textHypotenuse.setAttribute("transform", "rotate(-39.29, -2.8, -2.8)");
+  textHypotenuse.textContent = "hypoténuse";
+  svg.appendChild(textHypotenuse);
+
+  // === Lettre θ à côté de l'arc ===
+  const textTheta = document.createElementNS(NS, 'text');
+  textTheta.setAttribute("x", -3.2);
+  textTheta.setAttribute("y", -1.9);
+  textTheta.setAttribute("font-size", "0.3");
+  textTheta.setAttribute("fill", "black");
+  textTheta.setAttribute("font-family", "century gothic, arial, calibri");
+  textTheta.innerHTML = "θ";
+  svg.appendChild(textTheta);
+
+  // === texte formules trigonométriques ===
+  // sin
+  const textSin = document.createElementNS(NS, 'text');
+  textSin.setAttribute("x", -3.9);
+  textSin.setAttribute("y", -0.85);
+  textSin.setAttribute("font-size", "0.25");
+  textSin.setAttribute("fill", "black");
+  textSin.setAttribute("font-family", "century gothic, arial, calibri");
+  textSin.innerHTML = "sin(θ) = opp/hyp";
+  svg.appendChild(textSin);
+  // cos
+  const textCos = document.createElementNS(NS, 'text');
+  textCos.setAttribute("x", -3.9);
+  textCos.setAttribute("y", -0.55);
+  textCos.setAttribute("font-size", "0.25");
+  textCos.setAttribute("fill", "black");
+  textCos.setAttribute("font-family", "century gothic, arial, calibri");
+  textCos.innerHTML = "cos(θ) = adj/hyp";
+  svg.appendChild(textCos);
+  // tan
+  const textTan = document.createElementNS(NS, 'text');
+  textTan.setAttribute("x", -3.9);
+  textTan.setAttribute("y", -0.25);
+  textTan.setAttribute("font-size", "0.25");
+  textTan.setAttribute("fill", "black");
+  textTan.setAttribute("font-family", "century gothic, arial, calibri");
+  textTan.innerHTML = "tan(θ) = opp/adj";
+  svg.appendChild(textTan);
+
+  // === Texte "soh cah toa" dans le 2ᵉ quadrant ===
+const textSohCahToa = document.createElementNS(NS, "text");
+textSohCahToa.setAttribute("x", -0.9);    // X négatif = quadrant gauche
+textSohCahToa.setAttribute("y", -3.85);    // Y négatif = en haut (car axe inversé)
+textSohCahToa.setAttribute("font-size", "0.265");
+textSohCahToa.setAttribute("fill", "black");
+textSohCahToa.setAttribute("font-family", "century gothic, arial, calibri");
+textSohCahToa.setAttribute("text-anchor", "middle");
+textSohCahToa.textContent = "soh cah toa";
+svg.appendChild(textSohCahToa);
+
+  
+})();
+</script>
+
+
+
+
+<button class="back-button" onclick="window.history.back()">Retour</button>
+
+</body>
+</html>

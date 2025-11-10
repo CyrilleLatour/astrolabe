@@ -1,0 +1,14 @@
+{% if courbes_azimut %}
+    {% set facteur = 240 / fixed_radius_suppl %}
+    {% for courbe in courbes_azimut %}
+        <path d="
+            {% for point in courbe.points %}
+                {% if loop.first %}
+                    M {{ 300 + point[0] * facteur }} {{ 250 - point[1] * facteur }}
+                {% else %}
+                    L {{ 300 + point[0] * facteur }} {{ 250 - point[1] * facteur }}
+                {% endif %}
+            {% endfor %}
+        " stroke="gray" stroke-width="1" fill="none"/>
+    {% endfor %}
+{% endif %}

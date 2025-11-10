@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Anneau extérieur</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-family: century gothic, arial, calibri;
+        }
+        h1 {
+            color: blue;
+            text-align: center;
+            margin: 10px 0;
+        }
+        svg {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+        }
+        .back-button {
+            position: absolute;
+            color: red;
+            background-color: white;
+            font-family: century gothic, arial, calibri;
+            font-size: 1.5em;
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 10px;
+            margin-left: 20px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            width: 70px;
+            bottom: 10px;
+        }
+        .back-button:hover {
+            color: white;
+            background-color: red;
+        }
+
+        #info-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 6px 10px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            width: 160px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <h1>Anneau extérieur</h1>
+
+    <div id="info-box">
+        x: <span id="x">0.00</span><br>
+        y: <span id="y">0.00</span><br>
+        distance: <span id="dist">0.00</span>
+    </div>
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="-13 -13 30 30" width="700" height="700" onmousemove="afficherCoord(event)"> 
+
+        <g id="cadre">
+            <rect x="-13" y="-13" width="26" height="26"
+                  stroke="black" stroke-width="0.05" fill="none"/>
+        </g>
+
+        <g id="contenu" transform="scale(0.9) translate(0, 0)">
+
+            <circle cx="0" cy="0" r="12.35" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="11.95" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="11.7"  stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="11.3"  stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.55" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.35" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10"    stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="9.45"  stroke="black" stroke-width="0.05" fill="none" />
+
+            <g stroke="black" stroke-width="0.02">
+                {% for trait in traits_graduation.traits_1_degre %}
+                    <line x1="{{ trait.x1 }}" y1="{{ trait.y1 }}" x2="{{ trait.x2 }}" y2="{{ trait.y2 }}" />
+                {% endfor %}
+            </g>
+
+            <g stroke="black" stroke-width="0.03">
+                {% for trait in traits_graduation.traits_5_degres %}
+                    <line x1="{{ trait.x1 }}" y1="{{ trait.y1 }}" x2="{{ trait.x2 }}" y2="{{ trait.y2 }}" />
+                {% endfor %}
+            </g>
+
+            <g stroke="red" stroke-width="0.05">
+                {% for trait in traits_graduation.traits_30_degres %}
+                    <line x1="{{ trait.x1 }}" y1="{{ trait.y1 }}" x2="{{ trait.x2 }}" y2="{{ trait.y2 }}" />
+                {% endfor %}
+            </g>
+
+            <g stroke="black" stroke-width="0.02">
+                {% for ligne in subdivisions_annee.subdivisions_jours %}
+                    <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" />
+                {% endfor %}
+            </g>
+
+            
+            <!-- ✅ Traits noirs : jours 5, 10, 15, 20, 25, 30 (sauf le 30 pour les mois à 30 jours) -->
+<g id="traits_intermediaires_tous_mois"></g>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const svgNS = "http://www.w3.org/2000/svg";
+    const contenu = document.getElementById("traits_intermediaires_tous_mois");
+
+    // Durée de chaque mois (année non bissextile)
+    const annee = [
+        { nom: "Janvier", jours: 31 },
+        { nom: "Février", jours: 28 },
+        { nom: "Mars", jours: 31 },
+        { nom: "Avril", jours: 30 },
+        { nom: "Mai", jours: 31 },
+        { nom: "Juin", jours: 30 },
+        { nom: "Juillet", jours: 31 },
+        { nom: "Août", jours: 31 },
+        { nom: "Septembre", jours: 30 },
+        { nom: "Octobre", jours: 31 },
+        { nom: "Novembre", jours: 30 },
+        { nom: "Décembre", jours: 31 }
+    ];
+
+    let jour_courant = 9; // position du 31 décembre précédent
+    const r_in = 10.00;
+    const r_out = 10.55;
+
+    for (const m of annee) {
+        // Pour chaque mois : jours multiples de 5
+        for (let j = 5; j < m.jours; j += 5) {
+            // ⚠️ Ne pas placer le trait du 30 pour les mois à 30 jours
+            if (m.jours === 30 && j === 30) continue;
+
+            const jour_absolu = jour_courant + j;
+            const angle = jour_absolu * 360 / 365;
+            const rad = (angle - 90) * Math.PI / 180;
+
+            const x1 = r_in * Math.cos(rad);
+            const y1 = r_in * Math.sin(rad);
+            const x2 = r_out * Math.cos(rad);
+            const y2 = r_out * Math.sin(rad);
+
+            const line = document.createElementNS(svgNS, "line");
+            line.setAttribute("x1", x1.toFixed(3));
+            line.setAttribute("y1", y1.toFixed(3));
+            line.setAttribute("x2", x2.toFixed(3));
+            line.setAttribute("y2", y2.toFixed(3));
+            line.setAttribute("stroke", "black");
+            line.setAttribute("stroke-width", "0.03");
+            line.setAttribute("data-mois", m.nom);
+            line.setAttribute("data-jour", j);
+
+            contenu.appendChild(line);
+        }
+        jour_courant += m.jours;
+    }
+});
+</script>
+
+            
+
+            <!-- ✅ Traits rouges : fins de mois (entre r=9.45 et r=10.55) -->
+            <g id="traits_rouges_fins_de_mois"></g>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    const svgNS = "http://www.w3.org/2000/svg";
+                    const contenu = document.getElementById("traits_rouges_fins_de_mois");
+
+                    // Durée de chaque mois (année non bissextile)
+                    const mois = [
+                        { nom: "Janvier", jours: 31 },
+                        { nom: "Février", jours: 28 },
+                        { nom: "Mars", jours: 31 },
+                        { nom: "Avril", jours: 30 },
+                        { nom: "Mai", jours: 31 },
+                        { nom: "Juin", jours: 30 },
+                        { nom: "Juillet", jours: 31 },
+                        { nom: "Août", jours: 31 },
+                        { nom: "Septembre", jours: 30 },
+                        { nom: "Octobre", jours: 31 },
+                        { nom: "Novembre", jours: 30 },
+                        { nom: "Décembre", jours: 31 }
+                    ];
+
+                    // Le 25 décembre est jour 3 (donc 31 décembre = jour 9)
+                    let jour_courant = 9; // position du 31 décembre précédent
+
+                    // Paramètres géométriques
+                    const r_in = 9.45;
+                    const r_out = 10.55;
+
+                    // Boucle sur les 12 fins de mois
+                    for (const m of mois) {
+                        jour_courant += m.jours;
+                        const angle = jour_courant * 360 / 365;
+                        const rad = (angle - 90) * Math.PI / 180;
+
+                        const x1 = r_in * Math.cos(rad);
+                        const y1 = r_in * Math.sin(rad);
+                        const x2 = r_out * Math.cos(rad);
+                        const y2 = r_out * Math.sin(rad);
+
+                        const line = document.createElementNS(svgNS, "line");
+                        line.setAttribute("x1", x1.toFixed(3));
+                        line.setAttribute("y1", y1.toFixed(3));
+                        line.setAttribute("x2", x2.toFixed(3));
+                        line.setAttribute("y2", y2.toFixed(3));
+                        line.setAttribute("stroke", "red");
+                        line.setAttribute("stroke-width", "0.03");
+                        line.setAttribute("id", "fin_" + m.nom.toLowerCase());
+                        line.setAttribute("data-mois", m.nom);
+
+                        contenu.appendChild(line);
+                    }
+                });
+            </script>
+            
+
+            
+
+
+        </g>
+    </svg>
+
+    <a href="{{ url_for('dos.dos_menu') }}" class="back-button">Retour</a>
+
+    <script>
+        function afficherCoord(evt) {
+            const svg = evt.target.ownerSVGElement || evt.target;
+            const pt = svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+
+            const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const scale = 0.9;
+            const x_corr = cursorpt.x / scale;
+            const y_corr = cursorpt.y / scale;
+
+            const x = x_corr.toFixed(2);
+            const y = (-y_corr).toFixed(2);
+            const dist = Math.sqrt(x_corr**2 + y_corr**2).toFixed(2);
+
+            document.getElementById("x").textContent = x;
+            document.getElementById("y").textContent = y;
+            document.getElementById("dist").textContent = dist;
+        }
+    </script>
+
+</body>
+</html>

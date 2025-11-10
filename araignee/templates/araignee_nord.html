@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <title>Araignée Nord de l'astrolabe</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: white;
+        }
+        h1 {
+            font-family: century gothic, arial, calibri;
+            text-align: center;
+            color: blue;
+            margin-top: 0;
+            margin-bottom: -20px;
+            padding-top: 5px;
+        }
+        #info-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 6px 10px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            width: 160px;
+            box-sizing: border-box;
+        }
+        svg {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .back-button {
+            position: absolute;
+            color: red;
+            background-color: white;
+            font-family: century gothic, arial, calibri;
+            font-size: 1.5em;
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 10px;
+            margin-left: 20px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            width: 70px;
+            bottom: 10px;
+        }
+        .back-button:hover {
+            color: white;
+            background-color: red;
+        }
+    </style>
+
+    <script>
+    /* Cartésien (Y vers le haut) + angle HORAIRE depuis +x.
+    Si tu passes le <svg> root, la fonction inverse Y pour toi.
+    Si tu passes un <g transform="scale(1,-1)">, elle n'inverse pas. */
+    function drawLine(el, x0, y0, L, deg) {
+    const r = deg * Math.PI / 180;
+    const x1 = x0 + L * Math.cos(r);
+    const y1 = y0 + L * Math.sin(r);  // horaire ⇒ on soustrait sin
+
+    const ln = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    const isRootSVG = el.tagName && el.tagName.toLowerCase() === "svg";
+    ln.setAttribute("x1", x0);
+    ln.setAttribute("y1", isRootSVG ? -y0 : y0);
+    ln.setAttribute("x2", x1);
+    ln.setAttribute("y2", isRootSVG ? -y1 : y1);
+    ln.setAttribute("stroke", "black");
+    ln.setAttribute("stroke-width", "0.02");
+    el.appendChild(ln);
+    return { x: x1, y: y1 };
+    }
+    </script>
+
+
+
+</head>
+<body>
+    <h1>Araignée de l'astrolabe (hémisphère Nord)</h1>
+    <div id="info-box">
+        x: <span id="x">0.00</span><br />
+        y: <span id="y">0.00</span><br />
+        distance: <span id="dist">0.00</span>
+    </div>
+    <svg id="svg" viewBox="-11.5 -11.5 23 23" xmlns="http://www.w3.org/2000/svg">
+        <rect fill="none" height="20.8" stroke="black" stroke-width="0.05" width="20.8" x="-10.4" y="-10.4"></rect>
+        <circle cx="0" cy="0" fill="none" r="9.141" stroke="black" stroke-width="0.02"></circle>
+        <circle cx="0" cy="0" fill="none" r="8.3" stroke="black" stroke-width="0.02"></circle>
+        <circle cx="0" cy="-2.604" fill="white" r="6.78" stroke="white" stroke-width="0.02"></circle>
+        <circle cx="0" cy="-2.604" fill="none" r="6.542" stroke="black" stroke-width="0.02"></circle>
+        <circle cx="0" cy="-2.604" fill="none" r="6.35" stroke="black" stroke-width="0.02"></circle>
+        <circle cx="0" cy="-2.604" fill="none" r="6" stroke="black" stroke-width="0.02"></circle>
+        <circle cx="0" cy="-2.604" fill="none" r="5.42583" stroke="black" stroke-width="0.02"></circle>
+
+        <circle cx="0" cy="0" fill="none" r="0.5" stroke="black" stroke-width="0.02"></circle>
+        <path d="M -6.4637 -6.4637 A 9.141 9.141 0 0 1 -3.5164 -8.413" stroke="white" stroke-width="0.1" fill="none" />
+        <script type="text/javascript">
+            //<![CDATA[
+            const centre_gris = { x: 0, y: -2.604 };
+            const rayon_gris = 6.8;
+            const centre_83 = { x: 0, y: 0 };
+            const rayon_83 = 8.3;
+            const centre_914 = { x: 0, y: 0 };
+            const rayon_914 = 9.141;
+
+            function intersectionCercles(c1, r1, c2, r2) {
+                const dx = c2.x - c1.x;
+                const dy = c2.y - c1.y;
+                const d = Math.sqrt(dx * dx + dy * dy);
+                if (d > r1 + r2 || d < Math.abs(r1 - r2) || d === 0) return null;
+                const a = (r1 * r1 - r2 * r2 + d * d) / (2 * d);
+                const h = Math.sqrt(r1 * r1 - a * a);
+                const px = c1.x + a * dx / d;
+                const py = c1.y + a * dy / d;
+                const x1 = px + h * dy / d;
+                const y1 = py - h * dx / d;
+                const x2 = px - h * dy / d;
+                const y2 = py + h * dx / d;
+                return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+            }
+
+            const inter_83 = intersectionCercles(centre_gris, rayon_gris, centre_83, rayon_83);
+            const inter_914 = intersectionCercles(centre_gris, rayon_gris, centre_914, rayon_914);
+
+            if (inter_83 && inter_914) {
+                const haut_83 = inter_83[0].y > inter_83[1].y ? inter_83[0] : inter_83[1];
+                const haut_914 = inter_914[0].y > inter_914[1].y ? inter_914[0] : inter_914[1];
+                const gauche_haut = haut_83.x < haut_914.x ? haut_83 : haut_914;
+                const autre_gauche = haut_83.x < haut_914.x ? haut_914 : haut_83;
+
+                const arc_gauche = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                arc_gauche.setAttribute("d", `M ${gauche_haut.x} ${gauche_haut.y} A ${rayon_gris} ${rayon_gris} 0 0 1 ${autre_gauche.x} ${autre_gauche.y}`);
+                arc_gauche.setAttribute("stroke", "black");
+                arc_gauche.setAttribute("stroke-width", "0.02");
+                arc_gauche.setAttribute("fill", "none");
+
+                const arc_droit = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                arc_droit.setAttribute("d", `M ${-autre_gauche.x} ${autre_gauche.y} A ${rayon_gris} ${rayon_gris} 0 0 1 ${-gauche_haut.x} ${gauche_haut.y}`);
+                arc_droit.setAttribute("stroke", "black");
+                arc_droit.setAttribute("stroke-width", "0.02");
+                arc_droit.setAttribute("fill", "none");
+
+                document.querySelector("svg").appendChild(arc_gauche);
+                document.querySelector("svg").appendChild(arc_droit);
+            }
+            //]]>
+        </script>
+        
+        <!-- les étoiles -->
+        
+        <!-- Vega -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="0.261" y1="2.839" x2="0.661" y2="2.839" stroke="blue" stroke-width="0.03" />
+            <line x1="0.461" y1="2.639" x2="0.461" y2="3.039" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- arc -->    
+        <path d="M -0.1436 -8.0529 A 5.42583 5.42583 0 0 0 0.2844 -8.0474" stroke="white" stroke-width="0.3" fill="none" />
+        <path d="M -0.3084 -0.3936 A 0.5 0.5 0 0 0 0.0802 -0.4935" stroke="white" stroke-width="0.3" fill="none" />
+        <path d="M -0.308357 -0.393594 A 11.186 11.186 0 0 1 -0.143610 -8.027929" stroke="black" stroke-width="0.02" fill="none" />
+        <path d="M 0.080165 -0.493532 A 10.786 10.786 0 0 1 0.284365 -8.022373" stroke="black" stroke-width="0.02" fill="none" />
+        <path d="M -0.4477 -2.9334 A 10.786 10.786 0 0 0 -0.4012 -2.5349" stroke="white" stroke-width="0.05" fill="none" />
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <line x1="-0.4576326" y1="2.9322411" x2="0.0751" y2="2.9944" stroke="black" stroke-width="0.02" />
+            <line x1="-0.4111326" y1="2.5337411" x2="0.1619" y2="2.6006" stroke="black" stroke-width="0.02" />            
+            <line x1="0.0751" y1="2.9944" x2="0.461" y2="2.839" stroke="black" stroke-width="0.02" />
+            <line x1="0.461" y1="2.839" x2="0.162" y2="2.6005" stroke="black" stroke-width="0.02" />        
+        </g>
+        <!-- texte -->
+        <text x="-0.26" y="-2.63"
+                font-size="0.37"
+                fill="black"
+                font-family="century gothic, arial, calibri"
+                text-anchor="middle"
+                transform="rotate(-6.65, -0.4, -2.739)">
+            Vega
+        </text>
+
+
+        <!-- Deneb -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="1.398" y1="1.882" x2="1.798" y2="1.882" stroke="blue" stroke-width="0.03" />
+            <line x1="1.598" y1="2.082" x2="1.598" y2="1.682" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- arc -->  
+            <path d="M 0.2354 -0.4411 A 5.3044 5.3044 0 0 0 0.485 -0.1216" stroke="white" stroke-width="0.12" fill="none" />
+            <path d="M 4.95 -0.3793 A 5.3044 5.3044 0 0 0 5.0992 -0.75" stroke="white" stroke-width="0.12" fill="none" />  
+            <path d="M 5.0992 -0.75 A 5.7044 5.7044 0 0 0 0.2354 -0.4411" stroke="black" stroke-width="0.02" fill="none" />
+            <path d="M 4.9487 -0.3792 A 5.3044 5.3044 0 0 0 0.485 -0.1216" stroke="black" stroke-width="0.02" fill="none" />
+            <line x1="1.796795" y1="-0.966935" x2="1.775605" y2="-1.064665" stroke="white" stroke-width="0.38" stroke-linecap="round" />
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <line x1="1.5906" y1="0.9698" x2="1.4759" y2="1.501" stroke="black" stroke-width="0.02" />
+            <line x1="1.9803" y1="1.0544" x2="1.8669" y2="1.5858" stroke="black" stroke-width="0.02" />
+            <line x1="1.598" y1="1.882" x2="1.4759" y2="1.501" stroke="black" stroke-width="0.02" />
+            <line x1="1.598" y1="1.882" x2="1.8669" y2="1.5858" stroke="black" stroke-width="0.02" />
+        </g>
+        <!-- texte -->
+        <defs>
+            <path id="deneb-mid" d="M 0.2354 -0.4411 A 5.7044 5.7044 0 0 1 5.0992 -0.75" fill="none" />
+        </defs>
+        <text font-family="Arial" font-size="0.37" fill="black">
+        <textPath href="#deneb-mid" startOffset="33%" text-anchor="middle">
+            <tspan dy="0.33">Deneb</tspan>
+        </textPath>
+        </text>
+       
+
+
+        <!-- Antares -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="-3.872" y1="8.786" x2="-3.472" y2="8.786" stroke="blue" stroke-width="0.03" />
+            <line x1="-3.672" y1="8.586" x2="-3.672" y2="8.986" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- arc (I) -->
+        <path d="M -6.4637 -6.4637 A 9 9 0 0 1 -3.5784 -8.562" stroke="black" stroke-width="0.02" fill="none" />
+        <!-- flèche -->
+            <line x1="-3.8089" y1="-8.4525" x2="-3.5784" y2="-8.562" stroke="white" stroke-width="0.1" />
+            <line x1="-3.672" y1="-8.786" x2="-3.8089" y2="-8.4525" stroke="black" stroke-width="0.02" />
+        <!-- arc (II) -->
+            <polygon points="-3.4946,-8.3616 -3.6103,-8.6384 -3.3335,-8.7541 -3.2178,-8.4773" fill="white" />
+            <line x1="-3.5164" y1="-8.4137" x2="-3.672" y2="-8.786" stroke="black" stroke-width="0.02" />
+        <!-- texte -->
+        <g transform="scale(1,-1)">
+        <defs>
+            <path id="arc-antares" d="M -6.144767 -5.469352 A 6.78 6.78 0 0 1 -2.865352 -8.748767" fill="none"/>
+        </defs>
+        <g transform="scale(1,-1)">
+            <text font-family="Arial" font-size="0.37" fill="black">
+            <textPath href="#arc-antares" startOffset="43%" text-anchor="middle">
+                <tspan dy="-0.1">Antares</tspan>
+            </textPath>
+            </text>
+        </g>
+        </g>
+
+
+        
+
+        
+
+
+        <!-- Denebola -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="-4.863" y1="-0.223" x2="-4.463" y2="-0.223" stroke="blue" stroke-width="0.03" />
+            <line x1="-4.663" y1="-0.423" x2="-4.663" y2="-0.023" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- texte -->
+        <defs>
+            <path id="courbe-denebola" d="M -4.6386 0.2109 A 5.7044 5.7044 0 0 0 -0.4142 0.28" />
+        </defs>
+        <text font-family="arial" font-size="0.37" fill="black">
+            <textPath href="#courbe-denebola" startOffset="35%" text-anchor="middle">
+            <tspan dy="-0.07">Denebola</tspan>
+            </textPath>
+        </text>
+        
+
+        <!-- Castor -->
+        <!--<circle cx="0" cy="-2.604" r="5.425" stroke="red" stroke-width="0.02" fill="None" />-->
+        <!-- fleche (I) -->
+        <polygon points="-1.337,3.053 -1.629,1.5818 -0.4072,1.8754" fill="white" stroke="none"/> 
+        <line x1="-1.337" y1="3.053" x2="-1.0666" y2="2.7106" stroke="black" stroke-width="0.02" />
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="-1.537" y1="-3.053" x2="-1.137" y2="-3.053" stroke="blue" stroke-width="0.03" />
+            <line x1="-1.337" y1="-3.253" x2="-1.337" y2="-2.853" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- fleche (II) -->
+        <line x1="-1.337" y1="3.053" x2="-1.5131" y2="2.1819" stroke="black" stroke-width="0.02" />
+        <line x1="-2.6145" y1="1.6873" x2="-2.8226" y2="2.0289" stroke="black" stroke-width="0.02" />
+        <polygon points="-2.6699 1.6671 -2.6437 1.6245 -2.6011 1.6507 -2.627353 1.693286" fill="white" />
+        <path d="M -2.6186 1.6754 A 5.025 5.025 0 0 0 -1.5131 2.1819" stroke="black" stroke-width="0.02" fill="none" />
+        <!-- texte -->
+        <defs>
+            <path id="castor-arc" d="M -4.735458 -0.395820 A 5.225 5.225 0 0 0 -1.352330 2.442962" />
+        </defs>
+        <text font-family="Arial" font-size="0.37" fill="black">
+            <textPath href="#castor-arc" startOffset="82%" text-anchor="middle">
+            <tspan dy="0.13">Castor</tspan>
+            </textPath>
+        </text> 
+        
+        
+        
+
+
+
+        <!-- Capella -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="0.257" y1="-2.4036" x2="0.657" y2="-2.4036" stroke="blue" stroke-width="0.03" />
+            <line x1="0.457" y1="-2.6036" x2="0.457" y2="-2.2036" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- flèche -->
+            <path d="M -0.9888 2.3228 A 5.025 5.025 0 0 0 0.457 2.4036" stroke="black" stroke-width="0.02" fill="none" />
+            <line x1="-0.9886032" y1="2.315" x2="-1.0666" y2="2.7106" stroke="black" stroke-width="0.02" />
+            <line x1="0.457" y1="2.4036" x2="0.2654" y2="2.8145" stroke="black" stroke-width="0.02" />
+        <!-- texte -->
+        <defs>
+            <path id="courbe-capella" d="M -3.3586 1.3986 A 5.225 5.225 0 0 0 4.0026 0.75456" />
+        </defs>
+        <text font-family="arial" font-size="0.37" fill="black">
+            <textPath href="#courbe-capella" startOffset="39.8%" text-anchor="middle">
+            <tspan dy="0.13">Capella</tspan>
+            </textPath>
+        </text>
+
+        
+
+
+
+
+
+        <!-- Algol -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="1.665" y1="-2.0029" x2="2.065" y2="-2.0029" stroke="blue" stroke-width="0.03" />
+            <line x1="1.865" y1="-2.2029" x2="1.865" y2="-1.8029" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- flèche -->       
+        <path d="M 1.865 2.0029 A 4.97 4.97 0 0 0 2.9183 1.4128" stroke="black" stroke-width="0.02" fill="none" />
+        <line x1="1.865" y1="2.0029" x2="2.2732" y2="2.3218" stroke="black" stroke-width="0.02" fill="none" />
+        <line x1="2.9536" y1="1.4613" x2="3.1887" y2="1.7849" stroke="red" stroke-width="0.02" fill="none" />
+        <line x1="2.9183" y1="1.4128" x2="3.1887" y2="1.7849" stroke="black" stroke-width="0.02" />
+        <!-- texte -->
+        <defs>
+        <!-- Arc Algol : centre (0,-2.604), r=5.19754, de 112.96° (gauche) à 22.96° (droite) -->
+            <path id="courbe-algol" d="M -2.027041 2.181902 A 5.19754 5.19754 0 0 0 4.785902 -0.576959" />
+        </defs>
+        <text font-family="arial" font-size="0.37" fill="black">
+            <textPath href="#courbe-algol" startOffset="59%" text-anchor="middle">
+            <tspan dy="0.11">Algol</tspan>
+            </textPath>
+        </text>
+
+
+
+
+        <!-- Alphard -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="3.326" y1="-0.128" x2="3.726" y2="-0.128" stroke="blue" stroke-width="0.03" />
+            <line x1="3.526" y1="-0.328" x2="3.526" y2="0.072" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- arc -->  
+            <path d="M 0.2354 -0.4411 A 5.3044 5.3044 0 0 0 0.485 -0.1216" stroke="white" stroke-width="0.12" fill="none" />
+            <path d="M 4.95 -0.3793 A 5.3044 5.3044 0 0 0 5.0992 -0.75" stroke="white" stroke-width="0.12" fill="none" />  
+            <path d="M 5.0992 -0.75 A 5.7044 5.7044 0 0 0 0.2354 -0.4411" stroke="black" stroke-width="0.02" fill="none" />
+            <path d="M 4.9487 -0.3792 A 5.3044 5.3044 0 0 0 0.485 -0.1216" stroke="black" stroke-width="0.02" fill="none" />
+            <line x1="1.796795" y1="-0.966935" x2="1.775605" y2="-1.064665" stroke="white" stroke-width="0.38" />
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <line x1="3.3688" y1="0.2399" x2="3.4283" y2="0.7347" stroke="black" stroke-width="0.02" />
+            <line x1="3.7659" y1="0.1921" x2="3.8254" y2="0.6869" stroke="black" stroke-width="0.02" />
+            <line x1="3.526" y1="-0.128" x2="3.3688" y2="0.2399" stroke="black" stroke-width="0.02" />
+            <line x1="3.526" y1="-0.128" x2="3.7659" y2="0.1921" stroke="black" stroke-width="0.02" />
+            <line x1="3.6152" y1="0.6129" x2="3.6394" y2="0.8162" stroke="white" stroke-width="0.38"/>
+        </g>
+        <!-- texte -->
+        <defs>
+            <path id="deneb-mid" d="M 0.2354 -0.4411 A 5.7044 5.7044 0 0 1 5.0992 -0.75" fill="none" />
+        </defs>
+        <text font-family="Arial" font-size="0.37" fill="black">
+        <textPath href="#deneb-mid" startOffset="70%" text-anchor="middle">
+            <tspan dy="0.3">Alphard</tspan>
+        </textPath>
+        </text>
+
+        
+
+
+
+        
+
+        
+
+        <!-- Segments bleus du cercle r = 8.3 aux étoiles externes -->
+
+        <!-- Spica -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+        <line x1="-6.965" y1="2.634" x2="-6.565" y2="2.634" stroke="blue" stroke-width="0.03" />
+        <line x1="-6.765" y1="2.434" x2="-6.765" y2="2.834" stroke="blue" stroke-width="0.03" />
+    </g>
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <path d="M -7.659 3.197 A 8.3 8.3 0 0 1 -7.805 2.824" stroke="white" stroke-width="1" fill="none" />
+            <line x1="-7.016" y1="2.946" x2="-7.68236675" y2="3.20665495" stroke="black" stroke-width="0.02" />
+            <line x1="-7.160" y1="2.573" x2="-7.82835725" y2="2.832589" stroke="black" stroke-width="0.02" />
+            <line x1="-6.765" y1="2.634" x2="-7.160" y2="2.573" stroke="black" stroke-width="0.02" />
+            <line x1="-6.765" y1="2.634" x2="-7.016" y2="2.946" stroke="black" stroke-width="0.02" /> 
+            <!-- texte -->
+        <g transform="scale(1, -1)">
+        <text x="-7.7" y="-2.9"
+                font-size="0.37"
+                fill="black"
+                font-family="century gothic, arial, calibri"
+                text-anchor="middle"
+                transform="rotate(21.27594, -7.7, -2.9)">
+            Spica
+        </text>
+        </g>
+        </g>
+
+        <!-- Regulus -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+        <line x1="-4.494" y1="-2.2767" x2="-4.094" y2="-2.2767" stroke="blue" stroke-width="0.03" />
+        <line x1="-4.294" y1="-2.4767" x2="-4.294" y2="-2.0767" stroke="blue" stroke-width="0.03" />
+    </g>
+        <!-- règle -->
+        <g transform="scale(1, -1)">
+            <path d="M -7.4053 -3.6999 A 8.3 8.3 0 0 1 -7.2185 -4.0523" stroke="white" stroke-width="1" fill="none" />
+            <line x1="-7.2626" y1="-4.0757" x2="-4.504484" y2="-2.613577"
+      stroke="black" stroke-width="0.02" />
+            <line x1="-7.4493" y1="-3.7232" x2="-4.673118" y2="-2.251547"
+      stroke="black" stroke-width="0.02" />
+            <polygon points="-4.294,-2.2767 -4.645,-2.264 -4.480,-2.574" fill="white" stroke="none" />
+            <line x1="-4.504484" y1="-2.613577" x2="-4.294" y2="-2.2767" stroke="black" stroke-width="0.02" stroke-linecap="round" />
+            <line x1="-4.673118" y1="-2.251547" x2="-4.294" y2="-2.2767" stroke="black" stroke-width="0.02" stroke-linecap="round" />            
+            <!-- texte -->
+            <g transform="scale(1, -1)">
+            <text x="-5.5" y="3.025"
+                    font-size="0.37"
+                    fill="black"
+                    font-family="century gothic, arial, calibri"
+                    text-anchor="middle"
+                    transform="rotate(-27.93137, -5.5, 3.025)">
+                Regulus
+            </text>
+            </g>
+        </g>
+
+        <!-- Procyon -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+    <line x1="-2.497" y1="-4.971" x2="-2.097" y2="-4.971" stroke="blue" stroke-width="0.03" />
+    <line x1="-2.297" y1="-5.171" x2="-2.297" y2="-4.771" stroke="blue" stroke-width="0.03" />
+</g>
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <path d="M -3.297 -7.617 A 8.3 8.3 0 0 1 -3.66 -7.45" stroke="white" stroke-width="0.5" fill="none" />
+            
+            <line x1="-3.30744" y1="-7.64038" x2="-2.26069" y2="-5.36892" stroke="black" stroke-width="0.025" />
+            <line x1="-3.67056" y1="-7.47262" x2="-2.62160" y2="-5.19830" stroke="black" stroke-width="0.025" />
+            <line x1="-2.297" y1="-4.971" x2="-2.26069" y2="-5.36892" stroke="black" stroke-width="0.025" />
+            <line x1="-2.297" y1="-4.971" x2="-2.6216" y2="-5.1983" stroke="black" stroke-width="0.025" />
+        </g>
+        <!-- texte -->
+        <text x="-2.9" y="6.37"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(-65.19761, -2.9, 6.27647)">
+        Procyon
+    </text>
+    
+
+        <!-- Betelgeuse -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+        <line x1="-0.087" y1="-5.269" x2="0.313" y2="-5.269" stroke="blue" stroke-width="0.03" />
+        <line x1="0.113" y1="-5.469" x2="0.113" y2="-5.069" stroke="blue" stroke-width="0.03" />
+    </g>
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <path d="M -0.021 -8.326 A 8.3 8.3 0 0 1 0.379 -8.316" stroke="white" stroke-width="0.5" fill="none" />
+            <line x1="-0.021" y1="-8.326" x2="-0.07933" y2="-5.61926" stroke="black" stroke-width="0.025" />
+            <line x1="0.379" y1="-8.316" x2="0.32072" y2="-5.61159" stroke="black" stroke-width="0.025" />
+            <line x1="0.113" y1="-5.269" x2="-0.07933" y2="-5.61926" stroke="black" stroke-width="0.025" />
+            <line x1="0.113" y1="-5.269" x2="0.32072" y2="-5.61159" stroke="black" stroke-width="0.025" />   
+        </g>
+        <!-- texte -->
+        <text x="1" y="6.22"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(88.771634, 0.13, 6.125)">
+            Betelgeuse
+        </text>
+
+
+        <!-- Sirius -->
+        <g transform="scale(1, -1)">
+        <!-- croix -->
+            <line x1="-1.685" y1="-7.709" x2="-1.385" y2="-7.709" stroke="blue" stroke-width="0.03" />
+            <line x1="-1.535" y1="-7.859" x2="-1.535" y2="-7.559" stroke="blue" stroke-width="0.03" />
+        <!-- arcs -->
+        <line x1="-2.33718" y1="-5.53488" x2="-2.49603" y2="-5.87961" stroke="white" stroke-width="0.2" />
+        <path d="M -0.0711 -6 A 6.4 6.4 0 0 1 -0.0625 -6.4" stroke="white" stroke-width="0.04" fill="none" />        
+        <path d="M -2.34294 -5.52364 A 6 6 0 0 1 -0.06123714673631871 -5.999687492849906" stroke="black" stroke-width="0.02" fill="none" />
+        <path d="M -2.51040 -5.88710 A 6.4 6.4 0 0 1 -0.05259744008847348 -6.399783864264179" stroke="black" stroke-width="0.02" fill="none" />  
+        <path d="M -1.44536 -6.23466 A 6.4 6.4 0 0 1 -1.05306 -6.31277" stroke="white" stroke-width="0.2" fill="none" />
+        <path d="M -1.3511 -5.8459 A 2.2 2.2 0 0 0 -0.9127 -3.872" stroke="black" stroke-width="0.02" fill="none" />
+        <path d="M -0.9474 -5.9247 A 1.82 1.82 0 0 0 -0.4328 -3.9217" stroke="black" stroke-width="0.02" fill="none" />
+        <path d="M -1.1968 -5.7130 A 2.01 2.01 0 0 1 -1.0039 -6.2381" stroke="white" stroke-width="0.35" fill="none" />
+        
+        <!-- flèche -->
+        <line x1="-1.27137" y1="-7.40517" x2="-1.05111" y2="-6.30296" stroke="black" stroke-width="0.02" />
+        <line x1="-1.66367" y1="-7.32975" x2="-1.44341" y2="-6.22484" stroke="black" stroke-width="0.02" />
+        <line x1="-1.535" y1="-7.709" x2="-1.66367" y2="-7.32975" stroke="black" stroke-width="0.02" />
+        <line x1="-1.535" y1="-7.709" x2="-1.27137" y2="-7.40517" stroke="black" stroke-width="0.02" />
+        </g>
+        <!-- texte -->
+        <text x="-1.22" y="7.15"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(-78.73834, -1.4, 7.031)">
+        Sirius
+        </text>
+
+
+        <!-- Rigel -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+        <line x1="1.158" y1="-6.742" x2="1.558" y2="-6.742" stroke="blue" stroke-width="0.03" />
+        <line x1="1.358" y1="-6.942" x2="1.358" y2="-6.542" stroke="blue" stroke-width="0.03" />
+    </g>
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+             <path d="M 1.8399 -8.1202 A 8.3 8.3 0 0 1 1.4477 -8.1992"
+      fill="none" stroke="white" stroke-width="0.5" />                          
+            <line x1="1.8399" y1="-8.1202" x2="1.6279" y2="-7.0678" stroke="black" stroke-width="0.025" />
+            <line x1="1.4477" y1="-8.1992" x2="1.2357" y2="-7.1468" stroke="black" stroke-width="0.025" />
+            <line x1="1.358" y1="-6.742" x2="1.2357" y2="-7.1468" stroke="black" stroke-width="0.025" />
+            <line x1="1.358" y1="-6.742" x2="1.6279" y2="-7.0678" stroke="black" stroke-width="0.025" />
+
+            <!--<line x1="0" y1="0" x2="10.4" y2="-51.63076" stroke="red" stroke-width="0.01" />-->
+        </g>
+        <!-- texte -->
+        <text x="1.5" y="7.92"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(78.61129, 1.615, 7.773)">
+            Rigel
+        </text>
+
+
+
+        <!-- Aldebaran -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+        <line x1="1.418" y1="-4.178" x2="1.818" y2="-4.178" stroke="blue" stroke-width="0.03" />
+        <line x1="1.618" y1="-4.378" x2="1.618" y2="-3.978" stroke="blue" stroke-width="0.03" />
+    </g>
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <path d="M 2.833 -7.802 A 8.3 8.3 0 0 1 3.159 -7.675" stroke="white" stroke-width="1" fill="none" />
+            <line x1="1.5566" y1="-4.5728" x2="2.8058" y2="-7.8007" stroke="black" stroke-width="0.025" />
+            <line x1="1.9289" y1="-4.4281" x2="3.1822" y2="-7.6654" stroke="black" stroke-width="0.025" />
+            <line x1="1.618" y1="-4.178" x2="1.9289" y2="-4.4281" stroke="black" stroke-width="0.025" />
+            <line x1="1.618" y1="-4.178" x2="1.5566" y2="-4.5728" stroke="black" stroke-width="0.025" />
+            <!--<line x1="0" y1="0" x2="16.18" y2="-41.78" stroke="red" stroke-width="0.01" />-->
+        </g>
+        <!-- texte -->
+        <text x="2.4" y="5.533"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(68.83849, 2.1, 5.42493)">
+            Aldebaran
+        </text>
+
+
+
+       <!-- Arcturus -->
+       <!-- croix -->
+    <g transform="scale(1, -1)">
+    <line x1="-3.74" y1="2.378" x2="-3.34" y2="2.378" stroke="blue" stroke-width="0.03" />
+    <line x1="-3.5399" y1="2.178" x2="-3.5399" y2="2.578" stroke="blue" stroke-width="0.03" />
+</g>
+       <!-- flèche -->
+    <g transform="scale(1, -1)">
+        <path d="M -5.424 2.457 A 5.42583 5.42583 0 0 1 -5.398 2.059" stroke="white" stroke-width="1" fill="none" />
+        <line x1="-5.423" y1="2.057" x2="-3.885" y2="2.156" stroke="black" stroke-width="0.02" />
+        <line x1="-5.449" y1="2.456" x2="-3.891" y2="2.555" stroke="black" stroke-width="0.02" />
+        <line x1="-3.885" y1="2.156" x2="-3.5399" y2="2.378" stroke="black" stroke-width="0.02" />
+        <line x1="-3.891" y1="2.555" x2="-3.5399" y2="2.378" stroke="black" stroke-width="0.02" />
+        <!--<polygon points="-3.707,2.369 -3.89,2.461 -3.886,2.252" stroke="black" stroke-width="0.02" fill="none" />-->
+        <!--<line x1="0" y1="2.604" x2="-10.4" y2="1.939866" stroke="red" stroke-width="0.01" />-->
+    <!-- Texte -->
+    <g transform="scale(1, -1)">
+        <text x="-4.65" y="-2.2"
+                font-size="0.37"
+                fill="black"
+                font-family="century gothic, arial, calibri"
+                text-anchor="middle"
+                transform="rotate(-3.658, -4.65, -2.2)">
+            Arcturus
+        </text>
+        </g>
+    </g>
+
+        
+        <!-- Altair -->
+        <!-- croix -->
+    <g transform="scale(1, -1)">
+        <line x1="2.186" y1="4.549" x2="2.586" y2="4.549" stroke="blue" stroke-width="0.03" />
+        <line x1="2.386" y1="4.349" x2="2.386" y2="4.749" stroke="blue" stroke-width="0.03" />
+    </g>
+        <!-- flèche -->
+        <g transform="scale(1, -1)">
+            <path d="M 4.327515 5.876956 A 5.42583 5.42583 0 0 1 4.074634 6.186874" stroke="white" stroke-width="1" fill="none" />
+            <line x1="2.525" y1="4.925" x2="4.094" y2="6.203" stroke="black" stroke-width="0.02" />
+            <line x1="2.781" y1="4.615" x2="4.347" y2="5.893" stroke="black" stroke-width="0.02" />
+            <line x1="2.52515" y1="4.92450" x2="2.386" y2="4.549" stroke="black" stroke-width="0.02" />
+            <line x1="2.78093" y1="4.61477" x2="2.386" y2="4.549" stroke="black" stroke-width="0.02" />
+            <!--<line x1="0" y1="2.604" x2="10.4" y2="11.090" stroke="red" stroke-width="0.01" />-->
+        <!-- texte -->
+        <g transform="scale(1, -1)">
+        <text x="3.3" y="-5.3"
+                font-size="0.37"
+                fill="black"
+                font-family="century gothic, arial, calibri"
+                text-anchor="middle"
+                transform="rotate(-39.213, 3.5, -5.3)">
+            Altair
+        </text>
+        </g>
+        </g>
+
+
+        <!-- Gemma -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="-2.39" y1="2.978" x2="-1.99" y2="2.978" stroke="blue" stroke-width="0.03" />
+            <line x1="-2.19" y1="3.178" x2="-2.19" y2="2.778" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- flèche -->
+        <g transform="scale(1,-1)">
+            <path d="M -0.8783 3.2844 A 11.146 11.146 0 0 1 -0.8462 2.8857" stroke="white" stroke-width="0.05" fill="none" />
+            <line x1="-0.8783" y1="3.2844" x2="-1.8608" y2="3.2052" stroke="black" stroke-width="0.02" />
+            <line x1="-1.8286" y1="2.8065" x2="-0.8462" y2="2.8857" stroke="black" stroke-width="0.02" />
+
+            <line x1="-1.8608" y1="3.2052" x2="-0.868608" y2="3.285186" stroke="black" stroke-width="0.02" />
+            <line x1="-1.8286" y1="2.8065" x2="-0.836509" y2="2.886487" stroke="black" stroke-width="0.02" />
+
+            <line x1="-2.19" y1="2.978" x2="-1.8608" y2="3.2052" stroke="black" stroke-width="0.02" />
+            <line x1="-2.19" y1="2.978" x2="-1.8286" y2="2.8065" stroke="black" stroke-width="0.02" />
+        </g>
+        <!-- texte -->
+        <text x="-1.227" y="-2.915"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(-4.61, -1.35, -3.0482)">
+            Gemma
+        </text>
+
+        
+        
+        <!-- Alkaid -->
+        <!-- croix -->
+        <g transform="scale(1, -1)">
+            <line x1="-2.1842" y1="1.006" x2="-1.7842" y2="1.006" stroke="blue" stroke-width="0.03" />
+            <line x1="-1.9842" y1="0.806" x2="-1.9842" y2="1.206" stroke="blue" stroke-width="0.03" />
+        </g>
+        <!-- arc
+        <path d="M -0.308357 -0.393594 A 11.186 11.186 0 0 1 -0.143610 -8.027929" stroke="green" stroke-width="0.02" fill="none" />-->
+        <!-- flèche -->
+            <line x1="-1.6947" y1="-1.2821" x2="-0.6301" y2="-1.5405" stroke="black" stroke-width="0.02" />
+            <line x1="-1.6003" y1="-0.8933" x2="-0.5357" y2="-1.1517" stroke="black" stroke-width="0.02" />
+            <line x1="-1.9842" y1="-1.006" x2="-1.6947" y2="-1.2821"  stroke="black" stroke-width="0.02" />
+            <line x1="-1.9842" y1="-1.006" x2="-1.6003" y2="-0.8933" stroke="green" stroke-width="0.02" />
+            <line x1="-0.6818" y1="-1.3221" x2="-0.4874" y2="-1.3693" stroke="white" stroke-width="0.38" /><!-- texte -->
+        <text x="-1.1" y="-1.1"
+            font-size="0.37"
+            fill="black"
+            font-family="century gothic, arial, calibri"
+            text-anchor="middle"
+            transform="rotate(-13.6418, -1.1, -1.2206)">
+            Alkaid
+        </text>
+
+
+
+        <!-- ARCS -->
+        <!-- arc gauche externe -->
+            <path d="M -8.2913 -0.381 A 2.7657 2.7657 0 0 0  -8.3 0.0738" stroke="white" stroke-width="0.05" fill="none" /> 
+            <path d="M -6.229 -0.6119 A 3.16576 3.16576 0 0 0 -8.291 -0.381" stroke="black" stroke-width="0.02" fill="none" />
+            <path d="M -6.0623 -0.151 A 2.7657 2.7657 0 0 0 -8.3 0.074" stroke="black" stroke-width="0.02" fill="none" />            
+        
+        <!-- arc droit externe -->
+            <path d="M 8.2826 -0.537 A 2.76576 2.76576 0 0 0 8.3 -0.0741" stroke="white" stroke-width="0.06" fill="none" />
+            <path d="M 6.1058 -0.2579 A 2.36576 2.36576 0 0 0 8.2826 -0.5366" stroke="black" stroke-width="0.02" fill="none" />
+            <path d="M 5.949736 0.1112 A 2.76576 2.76576 0 0 0 8.29967 -0.0740641" stroke="black" stroke-width="0.02" fill="none" />
+
+        <!-- arc gauche interne -->
+            <path d="M -0.485 -0.1216 A 0.5 0.5 0 0 0 -0.4142 0.28" stroke="white" stroke-width="0.05" fill="none" />
+            <path d="M -4.9487 -0.3792 A -5.42583 5.42583 0 0 0 -4.6385 0.2109" stroke="white" stroke-width="0.05" fill="none" />
+            <path d="M -4.9487 -0.3792 A 5.3044 5.3044 0 0 0 -0.485 -0.1216" stroke="black" stroke-width="0.02" fill="none" />
+            <path d="M -4.6386 0.2109 A 5.7044 5.7044 0 0 0 -0.4142 0.28" stroke="black" stroke-width="0.02" fill="none" />
+            
+        
+            
+        <!-- DÉCOUPE ARC DROIT -->
+        <line x1="4.286" y1="-7.8575" x2="4.3892" y2="-8.0468" stroke="black    " stroke-width="0.02" />
+        <line x1="4.36754" y1="-8.03007" x2="2.61134" y2="-8.98787" stroke="white" stroke-width="0.6" />
+
+        <!-- Petite croix au centre (0,0)
+        <line stroke="black" stroke-width="0.05" x1="-0.2" x2="0.2" y1="0" y2="0"></line>
+        <line stroke="black" stroke-width="0.05" x1="0" x2="0" y1="-0.2" y2="0.2"></line>
+
+        Petite croix au point (0, -2.604)
+        <line stroke="black" stroke-width="0.01" x1="-0.2" x2="0.2" y1="-2.604" y2="-2.604"></line>
+        <line stroke="black" stroke-width="0.01" x1="0" x2="0" y1="-2.804" y2="-2.404"></line> -->
+
+        <!-- Cercle central (0,0) -->
+        <circle cx="0" cy="0" r="0.1" fill="none" stroke="black" stroke-width="0.02" />
+
+    <!-- SUBDIVISIONS -->
+    <!-- subdivisions 365 jours -->
+    <script type="text/javascript">
+    (function () {
+        const svg = document.getElementById("svg");
+
+        const centre_cercles = { x: 0, y: 2.604 };
+        const r_int = 6.35;
+        const r_ext = 6.54;
+        const centre_rayons = { x: 0, y: 0 };
+
+        const N = 365;
+        const angle_start_deg = 90;
+
+        for (let i = 0; i < N; i++) {
+            const angle_deg = angle_start_deg - (360 / N) * i;
+            const angle_rad = angle_deg * Math.PI / 180;
+
+            // Direction du rayon
+            const dx = Math.cos(angle_rad);
+            const dy = Math.sin(angle_rad);
+
+            // Recherche de l'intersection avec les deux cercles centrés en (0 ; 2.604)
+            const inter = (r) => {
+                const a = dx * dx + dy * dy;
+                const b = 2 * (dx * (centre_rayons.x - centre_cercles.x) + dy * (centre_rayons.y - centre_cercles.y));
+                const c = Math.pow(centre_cercles.x - centre_rayons.x, 2) +
+                          Math.pow(centre_cercles.y - centre_rayons.y, 2) - r * r;
+
+                const delta = b * b - 4 * a * c;
+                if (delta < 0) return null;
+
+                const sqrtDelta = Math.sqrt(delta);
+                const t1 = (-b + sqrtDelta) / (2 * a);
+                const t2 = (-b - sqrtDelta) / (2 * a);
+                const t = Math.max(t1, t2); // Le plus loin
+
+                return {
+                    x: centre_rayons.x + t * dx,
+                    y: centre_rayons.y + t * dy
+                };
+            };
+
+            const p1 = inter(r_ext); // Point sur le cercle extérieur (plus proche de (0,0))
+            const p2 = inter(r_int); // Point sur le cercle intérieur (plus loin)
+
+            if (p1 && p2) {
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", p1.x.toFixed(5));
+                line.setAttribute("y1", -p1.y.toFixed(5));
+                line.setAttribute("x2", p2.x.toFixed(5));
+                line.setAttribute("y2", -p2.y.toFixed(5));
+                line.setAttribute("stroke", "black");
+                line.setAttribute("stroke-width", "0.02");
+                svg.appendChild(line);
+            }
+        }
+    })();
+    </script>
+
+
+    <!-- subdivisions 5 jours par 5 jours -->
+    <script type="text/javascript">
+(function () {
+    const svg = document.getElementById("svg");
+    
+    // Paramètres pour subdivisions tous les 5 jours
+    const angle_increment = 360 / 365;
+    const i_dec31 = 9;
+    const r_in = 6;
+    const r_out = 6.35;
+    const cy = -2.604;
+    
+    // Définition de tous les mois
+    const mois = [
+        {nom: "janvier", jours: 31, debut: 0},
+        {nom: "février", jours: 28, debut: 31},
+        {nom: "mars", jours: 31, debut: 59},
+        {nom: "avril", jours: 30, debut: 90},
+        {nom: "mai", jours: 31, debut: 120},
+        {nom: "juin", jours: 30, debut: 151},
+        {nom: "juillet", jours: 31, debut: 181},
+        {nom: "août", jours: 31, debut: 212},
+        {nom: "septembre", jours: 30, debut: 243},
+        {nom: "octobre", jours: 31, debut: 273},
+        {nom: "novembre", jours: 30, debut: 304},
+        {nom: "décembre", jours: 31, debut: 334}
+    ];
+    
+    function intersection_droite_cercle(m, r, angle_deg) {
+        const a = 1 + m*m;
+        const b = 2 * cy * m;
+        const c = cy*cy - r*r;
+        
+        const delta = b*b - 4*a*c;
+        if (delta < 0) return null;
+        
+        const sqrt_delta = Math.sqrt(delta);
+        const x1 = (-b - sqrt_delta) / (2*a);
+        const x2 = (-b + sqrt_delta) / (2*a);
+        const y1 = m * x1;
+        const y2 = m * x2;
+        
+        // Logique avec que des angles positifs
+        if (angle_deg >= 0 && angle_deg < 90) return x1 > 0 ? [x1, y1] : [x2, y2];
+        if (angle_deg >= 90 && angle_deg < 180) return x1 < 0 ? [x1, y1] : [x2, y2];
+        if (angle_deg >= 180 && angle_deg < 270) return x1 < 0 ? [x1, y1] : [x2, y2];
+        if (angle_deg >= 270 && angle_deg < 360) return x1 > 0 ? [x1, y1] : [x2, y2];
+        
+        return x1 > 0 ? [x1, y1] : [x2, y2];
+    }
+    
+    // Boucle pour toute l'année
+    for (let moisIndex = 0; moisIndex < mois.length; moisIndex++) {
+        const moisCurrent = mois[moisIndex];
+        
+        for (let jour = 5; jour <= moisCurrent.jours; jour += 5) {
+            const jours_depuis_dec31 = moisCurrent.debut + jour;
+            const i_current = i_dec31 + jours_depuis_dec31;
+            let angle_deg = 90 - angle_increment * i_current;
+            
+            // Convertir angles négatifs en positifs
+            if (angle_deg < 0) {
+                angle_deg += 360;
+            }
+            
+            const angle_rad = angle_deg * Math.PI / 180;
+            const m = Math.tan(angle_rad);
+            
+            const point_in = intersection_droite_cercle(m, r_in, angle_deg);
+            const point_out = intersection_droite_cercle(m, r_out, angle_deg);
+            
+            if (point_in && point_out) {
+                const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("transform", "scale(1, -1)");
+                
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", point_in[0].toFixed(5));
+                line.setAttribute("y1", point_in[1].toFixed(5));
+                line.setAttribute("x2", point_out[0].toFixed(5));
+                line.setAttribute("y2", point_out[1].toFixed(5));
+                line.setAttribute("stroke", "black");
+                line.setAttribute("stroke-width", "0.02");
+                
+                g.appendChild(line);
+                svg.appendChild(g);
+            }
+        }
+    }
+})();
+</script>
+    
+
+    <!-- subdivisions 12 mois -->
+    <g transform="scale(1, -1)">
+    <line x1="1.23196" y1="7.88812" x2="1.40428" y2="8.99146" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="4.56117" y1="5.54259" x2="5.29818" y2="6.43817" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="5.41683" y1="2.29167" x2="6.53799" y2="2.76599" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="4.38701" y1="-0.58877" x2="5.61253" y2="-0.75324" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="2.73770" y1="-2.08051" x2="3.68403" y2="-2.79966" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="1.10473" y1="-2.70817" x2="1.53142" y2="-3.75417" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="-0.36475" y1="-2.80956" x2="-0.50842" y2="-3.91621" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="-1.92652" y1="-2.46829" x2="-2.63830" y2="-3.38023" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="-3.63176" y1="-1.42712" x2="-4.76714" y2="-1.87328" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="-5.09114" y1="0.72784" x2="-6.31486" y2="0.90279" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="-5.19648" y1="4.16485" x2="-6.12141" y2="4.90616" stroke="red" stroke-width="0.03" />
+    </g>
+
+    <g transform="scale(1, -1)">
+        <line x1="-2.86893" y1="7.20931" x2="-3.28638" y2="8.25832" stroke="red" stroke-width="0.03" />
+    </g>
+
+    </svg>
+
+    <script>
+        const svg = document.getElementById("svg");
+        svg.addEventListener("mousemove", function (evt) {
+            const pt = svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+            const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const x = cursorpt.x.toFixed(2);
+            const y = -cursorpt.y.toFixed(2);
+            const dist = Math.sqrt(cursorpt.x ** 2 + cursorpt.y ** 2).toFixed(2);
+            document.getElementById("x").textContent = x;
+            document.getElementById("y").textContent = y;
+            document.getElementById("dist").textContent = dist;
+        });
+    </script>
+    <a class="back-button" href="{{ url_for('araignee.menu') }}">Retour</a>
+</body>
+</html>

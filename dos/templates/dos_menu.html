@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu du Dos</title>
+    <style>
+        body {
+            font-family: century gothic, arial, calibri;
+            background-color: white;
+            text-align: center;
+        }
+
+        h1 {
+          color:blue;
+        }
+
+        .buttons-wrapper {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;  /* centre horizontalement */
+            align-items: center;      /* aligne verticalement au milieu */
+            gap: 20px; /* espace régulier entre les boutons */
+        }
+
+        a {
+        text-decoration: none; /* ✅ supprime le soulignement */
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .back-button {
+            color:red;
+            border: 1px solid red;
+            background-color: white;
+            border-radius: 8px;
+        }
+
+        .back-button:hover {
+            color: white;
+            background-color: red;
+        }
+
+        /* bouton sur 2 lignes */
+        .two-lines {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Type de dos</h1>
+
+    <div class="buttons-wrapper">
+        <a href="{{ url_for('dos.dos_classique') }}">
+            <button>Dos classique</button>
+        </a>
+        <a href="{{ url_for('dos.dos_plus') }}">
+            <button>Dos plus</button>
+        </a>
+        <a href="{{ url_for('dos.anneau_ext') }}">
+            <button class="two-lines">
+                <span>Anneau</span>
+                <span>extérieur</span>
+            </button>
+        </a>
+    </div>
+
+    <div class="buttons-wrapper">
+        <a href="{{ url_for('index') }}">
+            <button class="back-button">Retour</button>
+        </a>
+    </div>
+
+</body>
+</html>

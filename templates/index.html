@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Astrolabe</title>
+    <style>
+        h1 {
+            font-family: arial;
+            font-size: 2.5em;
+            color: blue;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .container-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+            width: 540px;
+        }
+        .selection-group {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+        .buttons-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 540px;
+            text-align: center;
+            margin-top: 100px;
+        }
+        button.validate {
+            margin-left: 0;
+            font-size: 1em;
+            padding: 5px;
+            border: 1px solid red;
+            color: white;
+            background-color: red;
+        }
+
+        button.validate:hover {
+            color: red;
+            background-color: white;
+        }
+
+        button {
+            font-family: arial;
+            font-size: 1.5em;
+            color: red;
+            background-color: white;
+            padding: 10px 20px; /* ↑ padding horizontal un peu plus large */
+            border: 1px solid red;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 160px; /* légèrement plus large pour Ostenseur */
+            text-align: center;
+            margin-bottom: 12px; /* un peu plus d’espace entre chaque bouton */
+        }
+
+        /* ✅ style spécifique pour Ostenseur */
+        .button-ostenseur {
+            padding: 14px 22px; /* plus d’espace interne */
+        }
+
+        button:hover {
+            color: white;
+            background-color: red;
+        }
+        select {
+            color: black;
+            background-color: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            width: 140px;
+        }
+        select:hover {
+            color: white;
+            background-color: grey;
+        }
+        label {
+            font-family: arial;
+            font-size: 1.2em;
+            white-space: nowrap;
+            margin-right: 10px;
+            width: 260px;
+        }
+        .validation-message {
+            color: green;
+            margin-left: 15px;
+            font-family: arial;
+            font-size: 1em;
+            opacity: 1;
+            transition: opacity 1s ease-out;
+            height: 24px;
+            display: flex;
+            text-align: center;
+            align-items: center;
+        }
+        .shift-left {
+            display: flex;
+            position: fixed;
+            margin-left: -310px;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('reset') && urlParams.get('reset') === '1') {
+                const diamSelect = document.getElementById('diametre');
+                if (diamSelect) {
+                    diamSelect.selectedIndex = 0;
+                }
+            }
+
+            const resetButton = document.querySelector('a[href="/reset"]');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Astrolabe</h1>
+    <br>
+    <nav>
+        <div class="container-wrapper">
+            <form method="POST" action="/" id="diametreForm">
+                <div class="form-row shift-left">
+                    <div class="selection-group">
+                        <label for="diametre">Diamètre de l'astrolabe (cm) :</label>
+                        <select name="diametre" id="diametre" required style="width: 140px;">
+                            <option value="" {% if first_visit or not diametre_astrolabe or request.args.get('reset') == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                            {% for i in range(10, 51) %}
+                            <option value="{{ i }}" {% if not first_visit and diametre_astrolabe == i and request.args.get('reset') != '1' %}selected{% endif %}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="button validate" type="submit">Valider</button>
+                    {% if validation_ok %}
+                    <div id="validation-message" class="validation-message">
+                        Validation OK
+                    </div>
+                    <script>
+                        setTimeout(function() {
+                            var message = document.getElementById('validation-message');
+                            if (message) {
+                                message.style.opacity = '0';
+                            }
+                        }, 3000);
+                    </script>
+                    {% endif %}
+                </div>
+            </form>
+
+            <div class="buttons-wrapper">
+                <a href="{{ url_for('tympan.menu') }}">
+                    <button>Tympan</button>
+                </a>
+                <a href="{{ url_for('dos.dos_menu') }}">
+                    <button>Dos</button>
+                </a>
+                <a href="{{ url_for('araignee.menu') }}">
+                    <button>Araignée</button>
+                </a>
+                <a href="{{ url_for('alidade.menu') }}">
+                    <button>Alidade</button>
+                </a>
+                <a href="{{ url_for('ostenseur.menu') }}">
+                    <button class="button-ostenseur">Ostenseur</button>
+                </a>
+            </div>
+        </div>
+    </nav>
+</body>
+</html>

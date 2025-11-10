@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dos de l'astrolabe</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: white;
+        }
+        h1 {
+            font-family: century gothic, arial, calibri;
+            text-align: center;
+            color: blue;
+            margin-top: 0;
+            margin-bottom: -20px;
+            padding-top: 5px;
+        }
+        #info-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 6px 10px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            width: 160px;
+            box-sizing: border-box;
+        }
+        svg {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .back-button {
+            position: absolute;
+            color: red;
+            background-color: white;
+            font-family: century gothic, arial, calibri;
+            font-size: 1.5em;
+            padding: 10px;
+            border: 1px solid red;
+            border-radius: 10px;
+            margin-left: 20px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            width: 70px;
+            bottom: 10px;
+        }
+        .back-button:hover {
+            color: white;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dos de l'astrolabe (I)</h1>
+    <div id="info-box">
+        x: <span id="x">0.00</span><br>
+        y: <span id="y">0.00</span><br>
+        distance: <span id="dist">0.00</span>
+    </div>
+    <svg viewBox="-15 -15 30 30" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Définition des masques -->
+        <defs>
+            <!-- Masque combiné : masquer la moitié gauche ET l'extérieur du cercle r = 8.55 -->
+            <mask id="masqueCombine">
+                <rect x="-15" y="-15" width="30" height="30" fill="black"/>
+                <!-- Zone visible : moitié droite ET intérieur du cercle -->
+                <circle cx="0" cy="0" r="8.55" fill="white"/>
+                <!-- Masquer la moitié gauche du cercle -->
+                <rect x="-15" y="-15" width="15" height="30" fill="black"/>
+            </mask>
+        </defs>
+
+        <!-- Cadre carré autour du cercle -->
+        <rect x="-13.5" y="-13.5" width="27" height="27" fill="none" stroke="black" stroke-width="0.05" />
+        
+        <g id="contenu" transform="scale(1.2)">
+
+        <!-- Cercle de rayon 9.45 -->
+        <circle cx="0" cy="0" r="9.45" stroke="black" stroke-width="0.05" fill="none" />
+
+        <!-- droite noire horizontale -->
+        <line x1="-9.45" y1="0" x2="9.45" y2="0" stroke="black" stroke-width="0.05" />
+
+        <!-- droite noire verticale -->
+        <g transform="scale(1, -1)">
+            <line x1="0" y1="0" x2="0" y2="9.45" stroke="black" stroke-width="0.05" />
+        </g>
+
+        <!-- cadre gauche correction -->
+        <g transform="scale(1, -1)">
+            {% for ligne in cadres_correction.cadre_gauche %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- cadre bas correction -->
+        <g transform="scale(1, -1)">
+            {% for ligne in cadres_correction.cadre_bas %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- cadre droit correction -->
+        <g transform="scale(1, -1)">
+            {% for ligne in cadres_correction.cadre_droit %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- diagonales gauche correction -->
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_gauche_25 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_gauche_13 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_gauche_5 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- diagonales bas correction -->
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_bas_49 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_bas_25 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_bas_9 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- diagonales droite correction -->
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_droite_25 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_droite_13 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <g transform="scale(1, -1)">
+            {% for ligne in diagonales_correction.diagonales_droite_5 %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- remplissage quadrilatères correction gauche -->
+        <g transform="scale(1, -1)">
+            {% for polygone in quadrilateres_correction.quadrilateres_gauche %}
+                <polygon points="{{ polygone.points }}" fill="{{ polygone.fill }}" stroke="{{ polygone.stroke }}" />
+            {% endfor %}
+        </g>
+
+        <!-- remplissage quadrilatères correction bas -->
+        <g transform="scale(1, -1)">
+            {% for polygone in quadrilateres_correction.quadrilateres_bas %}
+                <polygon points="{{ polygone.points }}" fill="{{ polygone.fill }}" stroke="{{ polygone.stroke }}" />
+            {% endfor %}
+        </g>
+
+        <!-- remplissage quadrilatères correction droite -->
+        <g transform="scale(1, -1)">
+            {% for polygone in quadrilateres_correction.quadrilateres_droite %}
+                <polygon points="{{ polygone.points }}" fill="{{ polygone.fill }}" stroke="{{ polygone.stroke }}" />
+            {% endfor %}
+        </g>
+
+        
+        
+        <!-- ARCS GAUCHE CALCULÉS -->
+        <!-- Arcs intérieurs (quarts de cercle) -->
+        {% for arc in arcs_gauche.arcs_interieurs %}
+        <path d="M -{{ arc.rayon }} 0 A {{ arc.rayon }} {{ arc.rayon }} 0 0 1 0 -{{ arc.rayon }}" stroke="{{ arc.stroke }}" stroke-width="{{ arc.stroke_width }}" fill="{{ arc.fill }}" />
+        {% endfor %}
+
+        <!-- Arcs calculés avec méthode des sécantes -->
+        {% for arc in arcs_gauche.arcs_calcules %}
+        <!-- {{ arc.commentaire }} -->
+        <path d="{{ arc.path }}" stroke="{{ arc.stroke }}" stroke-width="{{ arc.stroke_width }}" fill="{{ arc.fill }}" />
+        {% endfor %}
+
+        <!-- Segments de complétion -->
+        {% for segment in arcs_gauche.segments_completion %}
+        <line x1="{{ segment.x1 }}" y1="{{ segment.y1 }}" x2="{{ segment.x2 }}" y2="{{ segment.y2 }}" stroke="{{ segment.stroke }}" stroke-width="{{ segment.stroke_width }}" fill="{{ segment.fill }}" />
+        {% endfor %}
+
+
+
+        <!-- arcs de cercle milieu -->
+        <path d="M -8.55 0 A 8.55 8.55 0 0 1 0 -8.55" stroke="gray" stroke-width="0.03" fill="none" />
+        <path d="M -9.05 0 A 9.05 9.05 0 0 1 0 -9.05" stroke="black" stroke-width="0.05" fill="none" />
+
+        <path d="M 0 -8.55 A 8.55 8.55 0 0 1 8.55 0" stroke="gray" stroke-width="0.03" fill="none" />
+        <path d="M 0 -9.05 A 9.05 9.05 0 0 1 9.05 0" stroke="black" stroke-width="0.05" fill="none" />
+
+        <!-- cercle traitillé central -->
+        <g transform="scale(1, -1)">
+            <circle cx="0" cy="0" r="5" stroke="black" stroke-width="0.05" stroke-dasharray="0.2, 0.05" fill="none" />
+        </g>
+
+        <!-- subdivisions internes gauches -->
+        <g transform="scale(1, -1)">
+            <!-- Traits tous les 1° (91° à 179°) -->
+            {% for ligne in subdivisions_internes.subdivisions_gauche_1_degre %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+            
+            <!-- 5 traits spéciaux (105°, 120°, 135°, 150°, 165°) -->
+            {% for ligne in subdivisions_internes.subdivisions_gauche_15_degres %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+            
+            <!-- Traits tous les 5° (95° à 175°) -->
+            {% for ligne in subdivisions_internes.subdivisions_gauche_5_degres %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+            
+            <!-- Traits tous les 10° (100° à 170°) -->
+            {% for ligne in subdivisions_internes.subdivisions_gauche_10_degres %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- SUBDIVISIONS INTERNES À DROITE -->
+        <g transform="scale(1, -1)">
+            <!-- Traits tous les 1° (1° à 89°) -->
+            {% for ligne in subdivisions_internes.subdivisions_droite_1_degre %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+            
+            <!-- Traits tous les 5° (5° à 85°) -->
+            {% for ligne in subdivisions_internes.subdivisions_droite_5_degres %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+            
+            <!-- Traits tous les 10° (10° à 80°) -->
+            {% for ligne in subdivisions_internes.subdivisions_droite_10_degres %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+            
+            <!-- 5 traits spéciaux (15°, 30°, 45°, 60°, 75°) -->
+            {% for ligne in subdivisions_internes.subdivisions_droite_15_degres %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        
+
+        <!-- DEMI-CERCLE DES COSINUS -->
+<!-- Demi-cercle rouge -->
+<path d="M 0 0 A 4.275 4.275 0 0 0 0 -8.55" stroke="red" stroke-width="0.05" fill="none"/>
+
+<!-- Arc pour le texte COSINUS (chemin inversé) -->
+<path id="textPath" d="M 0 0 A 4.275 4.275 0 0 0 0 -8.55" fill="none"/>
+
+<!-- Texte aligné parfaitement sur le demi-cercle -->
+<text dy="-0.1" font-size="0.5" fill="red" font-family="Arial">
+<textPath href="#textPath" startOffset="17%">
+    cosinus
+</textPath>
+</text>
+        
+
+        <!-- DEMI-CERCLE DES SINUS -->
+        <!-- Arc rouge principal (votre version originale) -->
+        <path d="M 0 0 A 4.275 4.275 0 1 1 8.55 0" stroke="red" stroke-width="0.05" fill="none"/>
+
+        <!-- Arc pour le texte sinus -->
+        <path id="sineTextArc" d="M 0 -0.2 A 7 7 0 0 1 2.924 -3.8559" fill="none"/>
+
+        <!-- Texte "sinus" courbé -->
+        <text font-size="0.5" fill="red" font-family="Arial">
+            <textPath href="#sineTextArc" startOffset="60%" text-anchor="middle">
+                sinus
+            </textPath>
+        </text>
+    
+
+
+        <!-- Courbes des heures inégales -->
+        <script type="text/javascript">
+        //<![CDATA[
+            const groupHeuresInegales = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            groupHeuresInegales.setAttribute("transform", "scale(1, -1)");
+            groupHeuresInegales.setAttribute("mask", "url(#masqueCombine)");
+
+            const H = 8.55;
+
+            for (let N = 1; N <= 5; N++) {
+                const centerX = 0;
+                const angleForCenter = 15 * N * Math.PI / 180;
+                const centerY = H / (2 * Math.cos(angleForCenter));
+
+                const targetAngle = (90 + 15 * N) * Math.PI / 180; // angle à gauche
+                const targetX = H * Math.cos(targetAngle);
+                const targetY = H * Math.sin(targetAngle);
+
+                const radius = Math.sqrt(
+                    (targetX - centerX) ** 2 + (targetY - centerY) ** 2
+                );
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", centerX);
+                circle.setAttribute("cy", centerY);
+                circle.setAttribute("r", radius);
+                circle.setAttribute("fill", "none");
+                circle.setAttribute("stroke", "black");
+                circle.setAttribute("stroke-width", "0.03");
+
+                groupHeuresInegales.appendChild(circle);
+            }
+
+            document.querySelector("#contenu").appendChild(groupHeuresInegales);
+        //]]>
+        </script>
+
+
+        <!-- numéros des heures inégales
+        <script>
+        const rayon = 9.25;   // rayon du cercle
+        const angles = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180];  // tes angles en degrés
+        const chiffres = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];               // ce que tu veux afficher
+        // --------------------------------
+
+        // on sélectionne le SVG existant
+        const svg = document.querySelector("svg");
+
+        // groupe général (inversé globalement, comme ton système)
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("transform", "scale(1,-1)");
+
+        // génération des chiffres
+        for (let i = 0; i < angles.length; i++) {
+        const a = angles[i];
+        const angleRad = a * Math.PI / 180;
+        const x = rayon * Math.cos(angleRad);
+        const y = rayon * Math.sin(angleRad);
+
+        // groupe local pour remettre le texte à l'endroit
+        const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        textGroup.setAttribute("transform", "scale(1,-1)");
+
+        // création du texte
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", x.toFixed(3));
+        t.setAttribute("y", (-y).toFixed(3)); // inversé car parent déjà inversé
+        t.setAttribute("font-family", "century gothic, arial, calibri");
+        t.setAttribute("font-size", "0.55");
+        t.setAttribute("text-anchor", "middle");
+        t.textContent = chiffres[i]; // texte affiché (1 à 12)
+
+        textGroup.appendChild(t);
+        g.appendChild(textGroup);
+        }
+
+        // on ajoute le groupe au SVG
+        svg.appendChild(g);
+        </script>
+        fin des numéros des heures inégales -->
+
+
+
+        <!-- ## GRAPHIQUE DE L'ÉQUATION DU TEMPS ## -->
+        <g id="graphe-equation-temps" transform="translate(0, -0.3)">
+        <!-- CADRE -->
+        <!-- délimitation du cadre -->
+        <g fill="none">
+            {% for ligne in graphe_equation_temps.cadre %}
+                <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+            {% endfor %}
+        </g>
+
+        <!-- lignes verticales du cadre -->
+        <g fill="none">
+            {% for ligne in graphe_equation_temps.lignes_verticales %}
+                {% if ligne.text is defined %}
+                    <!-- Affichage du nom du mois -->
+                    <text x="{{ ligne.x }}" y="{{ ligne.y }}" font-family="century gothic, arial, calibri" font-size="{{ ligne.font_size }}" text-anchor="{{ ligne.anchor }}" stroke="{{ ligne.stroke }}" fill="{{ ligne.fill }}">{{ ligne.text }}</text>
+                {% else %}
+                    <!-- Affichage de la ligne verticale -->
+                    <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+                {% endif %}
+            {% endfor %}
+        </g>
+
+        <!-- lignes horizontales du cadre -->
+        <g fill="none">
+            {% for ligne in graphe_equation_temps.lignes_horizontales %}
+                {% if ligne.text is defined %}
+                    <!-- Affichage du label des minutes -->
+                    <text x="{{ ligne.x }}" y="{{ ligne.y }}" 
+                        font-size="0.43"                        
+                        font-family="Arial"
+                        text-anchor="{{ ligne.anchor }}" 
+                        stroke="{{ ligne.stroke }}" 
+                        fill="{{ ligne.fill }}">{{ ligne.text }}</text>
+                {% else %}
+                    <!-- Affichage de la ligne horizontale -->
+                    <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
+                {% endif %}
+            {% endfor %}
+        </g>
+
+        <!-- courbe du graphique de l'équation du temps -->
+        <path d="{{ graphe_equation_temps.courbe.path_data }}" 
+            stroke="{{ graphe_equation_temps.courbe.stroke }}" 
+            stroke-width="0.05" 
+            fill="{{ graphe_equation_temps.courbe.fill }}" />
+
+        </g>
+
+        <!-- courbe fermée de l'équation du temps -->
+        <g transform="scale(-1,-1)">
+        <path d="
+M -1.1227,5.7246 L -1.2420,5.8022 L -1.3641,5.8764 L -1.4888,5.9469 L -1.6159,6.0135
+L -1.7455,6.0763 L -1.8772,6.1349 L -2.0111,6.1894 L -2.1468,6.2395 L -2.2842,6.2851
+L -2.4232,6.3262 L -2.5636,6.3627 L -2.7052,6.3944 L -2.8479,6.4212 L -2.9914,6.4432
+L -3.1356,6.4602 L -3.2802,6.4721 L -3.4251,6.4790 L -3.5701,6.4807 L -3.7149,6.4773
+L -3.8595,6.4687 L -4.0035,6.4549 L -4.1468,6.4359 L -4.2892,6.4118 L -4.4305,6.3824
+L -4.5705,6.3480 L -4.7089,6.3084 L -4.8457,6.2637 L -4.9806,6.2141 L -5.1134,6.1594
+L -5.2440,6.0999 L -5.3721,6.0356 L -5.4976,5.9666 L -5.6203,5.8929 L -5.7401,5.8147
+L -5.8568,5.7321 L -5.9701,5.6451 L -6.0801,5.5540 L -6.1865,5.4589 L -6.2892,5.3598
+L -6.3881,5.2569 L -6.4830,5.1505 L -6.5738,5.0405 L -6.6605,4.9272 L -6.7428,4.8108
+L -6.8208,4.6914 L -6.8944,4.5692 L -6.9634,4.4444 L -7.0278,4.3171 L -7.0876,4.1875
+L -7.1426,4.0558 L -7.1929,3.9221 L -7.2384,3.7868 L -7.2791,3.6499 L -7.3149,3.5116
+L -7.3459,3.3722 L -7.3721,3.2317 L -7.3935,3.0905 L -7.4101,2.9486 L -7.4219,2.8063
+L -7.4289,2.6637 L -7.4313,2.5211 L -7.4290,2.3785 L -7.4221,2.2362 L -7.4107,2.0943
+L -7.3949,1.9531 L -7.3747,1.8125 L -7.3502,1.6729 L -7.3216,1.5343 L -7.2889,1.3969
+L -7.2522,1.2609 L -7.2116,1.1263 L -7.1673,0.9933 L -7.1194,0.8621 L -7.0680,0.7326
+L -7.0133,0.6051 L -6.9554,0.4797 L -6.8943,0.3564 L -6.8304,0.2353 L -6.7636,0.1164
+L -6.6943,-0.0000 L -6.6224,-0.1140 L -6.5482,-0.2255 L -6.4718,-0.3345 L -6.3934,-0.4409
+L -6.3131,-0.5447 L -6.2311,-0.6459 L -6.1476,-0.7444 L -6.0626,-0.8402 L -5.9764,-0.9334
+L -5.8891,-1.0239 L -5.8009,-1.1117 L -5.7118,-1.1970 L -5.6220,-1.2796 L -5.5318,-1.3596
+L -5.4411,-1.4371 L -5.3502,-1.5120 L -5.2592,-1.5846 L -5.1682,-1.6547 L -5.0774,-1.7225
+L -4.9867,-1.7881 L -4.8965,-1.8514 L -4.8066,-1.9127 L -4.7174,-1.9719 L -4.6288,-2.0291
+L -4.5410,-2.0845 L -4.4539,-2.1382 L -4.3678,-2.1901 L -4.2827,-2.2405 L -4.1986,-2.2894
+L -4.1156,-2.3370 L -4.0338,-2.3832 L -3.9531,-2.4283 L -3.8737,-2.4724 L -3.7956,-2.5155
+L -3.7187,-2.5577 L -3.6431,-2.5992 L -3.5688,-2.6401 L -3.4958,-2.6805 L -3.4242,-2.7204
+L -3.3538,-2.7600 L -3.2847,-2.7993 L -3.2169,-2.8386 L -3.1503,-2.8777 L -3.0849,-2.9170
+L -3.0207,-2.9564 L -2.9576,-2.9960 L -2.8955,-3.0359 L -2.8344,-3.0762 L -2.7743,-3.1169
+L -2.7150,-3.1582 L -2.6566,-3.2000 L -2.5989,-3.2425 L -2.5418,-3.2857 L -2.4854,-3.3295
+L -2.4294,-3.3742 L -2.3738,-3.4196 L -2.3186,-3.4659 L -2.2635,-3.5131 L -2.2087,-3.5611
+L -2.1538,-3.6099 L -2.0989,-3.6597 L -2.0439,-3.7103 L -1.9886,-3.7618 L -1.9331,-3.8141
+L -1.8770,-3.8672 L -1.8205,-3.9212 L -1.7633,-3.9759 L -1.7055,-4.0313 L -1.6468,-4.0873
+L -1.5873,-4.1440 L -1.5268,-4.2012 L -1.4653,-4.2589 L -1.4027,-4.3170 L -1.3389,-4.3755
+L -1.2738,-4.4342 L -1.2074,-4.4931 L -1.1396,-4.5520 L -1.0703,-4.6110 L -0.9996,-4.6698
+L -0.9273,-4.7284 L -0.8535,-4.7866 L -0.7780,-4.8445 L -0.7008,-4.9017 L -0.6220,-4.9583
+L -0.5416,-5.0141 L -0.4594,-5.0690 L -0.3755,-5.1229 L -0.2899,-5.1756 L -0.2026,-5.2271
+L -0.1136,-5.2771 L -0.0229,-5.3256 L 0.0694,-5.3725 L 0.1633,-5.4176 L 0.2587,-5.4608
+L 0.3557,-5.5019 L 0.4541,-5.5410 L 0.5539,-5.5777 L 0.6551,-5.6122 L 0.7575,-5.6441
+L 0.8611,-5.6734 L 0.9658,-5.7000 L 1.0715,-5.7239 L 1.1781,-5.7448 L 1.2855,-5.7627
+L 1.3936,-5.7775 L 1.5024,-5.7892 L 1.6116,-5.7977 L 1.7211,-5.8028 L 1.8309,-5.8045
+L 1.9408,-5.8028 L 2.0507,-5.7975 L 2.1604,-5.7888 L 2.2698,-5.7764 L 2.3788,-5.7604
+L 2.4872,-5.7407 L 2.5948,-5.7173 L 2.7016,-5.6903 L 2.8074,-5.6595 L 2.9120,-5.6251
+L 3.0153,-5.5869 L 3.1172,-5.5451 L 3.2174,-5.4996 L 3.3159,-5.4505 L 3.4125,-5.3978
+L 3.5071,-5.3415 L 3.5995,-5.2818 L 3.6896,-5.2186 L 3.7772,-5.1521 L 3.8622,-5.0822
+L 3.9445,-5.0091 L 4.0240,-4.9330 L 4.1005,-4.8537 L 4.1740,-4.7716 L 4.2442,-4.6866
+L 4.3112,-4.5989 L 4.3747,-4.5085 L 4.4348,-4.4157 L 4.4913,-4.3206 L 4.5441,-4.2232
+L 4.5931,-4.1237 L 4.6384,-4.0223 L 4.6797,-3.9191 L 4.7172,-3.8143 L 4.7506,-3.7079
+L 4.7800,-3.6002 L 4.8054,-3.4913 L 4.8266,-3.3814 L 4.8438,-3.2706 L 4.8568,-3.1590
+L 4.8658,-3.0469 L 4.8706,-2.9345 L 4.8713,-2.8218 L 4.8679,-2.7090 L 4.8605,-2.5963
+L 4.8490,-2.4839 L 4.8336,-2.3718 L 4.8143,-2.2604 L 4.7911,-2.1496 L 4.7641,-2.0397
+L 4.7334,-1.9309 L 4.6990,-1.8232 L 4.6611,-1.7167 L 4.6198,-1.6118 L 4.5751,-1.5083
+L 4.5272,-1.4066 L 4.4762,-1.3067 L 4.4221,-1.2087 L 4.3652,-1.1128 L 4.3055,-1.0190
+L 4.2432,-0.9274 L 4.1784,-0.8382 L 4.1114,-0.7513 L 4.0421,-0.6670 L 3.9708,-0.5852
+L 3.8977,-0.5060 L 3.8228,-0.4295 L 3.7464,-0.3558 L 3.6686,-0.2848 L 3.5896,-0.2165
+L 3.5095,-0.1511 L 3.4285,-0.0885 L 3.3468,-0.0288 L 3.2646,0.0281 L 3.1819,0.0822
+L 3.0990,0.1335 L 3.0161,0.1819 L 2.9332,0.2277 L 2.8506,0.2707 L 2.7684,0.3111
+L 2.6868,0.3488 L 2.6059,0.3840 L 2.5258,0.4168 L 2.4467,0.4471 L 2.3688,0.4752
+L 2.2922,0.5010 L 2.2169,0.5247 L 2.1432,0.5463 L 2.0711,0.5661 L 2.0008,0.5841
+L 1.9323,0.6004 L 1.8657,0.6151 L 1.8012,0.6284 L 1.7389,0.6404 L 1.6787,0.6513
+L 1.6208,0.6612 L 1.5652,0.6701 L 1.5120,0.6784 L 1.4612,0.6861 L 1.4129,0.6933
+L 1.3671,0.7003 L 1.3237,0.7071 L 1.2829,0.7139 L 1.2446,0.7210 L 1.2089,0.7283
+L 1.1756,0.7362 L 1.1448,0.7446 L 1.1165,0.7539 L 1.0906,0.7640 L 1.0670,0.7752
+L 1.0458,0.7876 L 1.0268,0.8014 L 1.0099,0.8166 L 0.9952,0.8335 L 0.9825,0.8520
+L 0.9717,0.8724 L 0.9628,0.8948 L 0.9556,0.9193 L 0.9499,0.9459 L 0.9458,0.9748
+L 0.9431,1.0060 L 0.9416,1.0397 L 0.9412,1.0759 L 0.9417,1.1147 L 0.9431,1.1562
+L 0.9452,1.2003 L 0.9478,1.2473 L 0.9509,1.2970 L 0.9541,1.3495 L 0.9574,1.4049
+L 0.9606,1.4631 L 0.9636,1.5242 L 0.9662,1.5881 L 0.9682,1.6549 L 0.9694,1.7245
+L 0.9698,1.7969 L 0.9691,1.8721 L 0.9673,1.9499 L 0.9640,2.0304 L 0.9592,2.1135
+L 0.9528,2.1991 L 0.9445,2.2871 L 0.9342,2.3775 L 0.9218,2.4701 L 0.9072,2.5648
+L 0.8902,2.6615 L 0.8707,2.7602 L 0.8485,2.8606 L 0.8235,2.9627 L 0.7957,3.0663
+L 0.7650,3.1712 L 0.7311,3.2773 L 0.6941,3.3845 L 0.6538,3.4926 L 0.6102,3.6014
+L 0.5632,3.7107 L 0.5127,3.8204 L 0.4587,3.9302 L 0.4012,4.0401 L 0.3401,4.1498
+L 0.2753,4.2591 L 0.2069,4.3679 L 0.1349,4.4759 L 0.0592,4.5829 L -0.0202,4.6889
+L -0.1032,4.7935 L -0.1897,4.8966 L -0.2797,4.9980 L -0.3730,5.0975 L -0.4695,5.1950
+L -0.5690,5.2902 L -0.6715,5.3830 L -0.7767,5.4733 L -0.8845,5.5609 L -0.9947,5.6455
+L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
+</g>
+
+</g>
+
+
+        <!-- Zone de capture souris -->
+        <rect x="-15" y="-15" width="30" height="30" fill="transparent" onmousemove="afficherCoord(event)" />
+    </svg>
+    <script>
+        function afficherCoord(evt) {
+            const svg = evt.target.ownerSVGElement;
+            const pt = svg.createSVGPoint();
+            pt.x = evt.clientX;
+            pt.y = evt.clientY;
+            const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const x = cursorpt.x.toFixed(2);
+            const y = -cursorpt.y.toFixed(2);
+            const dist = Math.sqrt(cursorpt.x**2 + cursorpt.y**2).toFixed(2);
+            document.getElementById("x").textContent = x;
+            document.getElementById("y").textContent = y;
+            document.getElementById("dist").textContent = dist;
+        }
+    </script>
+
+
+    <!-- angles du 1er quadrant - PLACÉ TOUT EN BAS POUR ÊTRE AU-DESSUS DES COURBES -->
+    <script>
+    const rayon = 9.25;
+    const angles = [15, 30, 45, 60, 75];
+
+    const svg = document.querySelector("svg");
+    const contenu = document.querySelector("#contenu");
+
+    // groupe général inversé
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("transform", "scale(1,-1)");
+
+    // génération des textes
+    for (let a of angles) {
+        const angleRad = a * Math.PI / 180;
+        const x = rayon * Math.cos(angleRad);
+        const y = rayon * Math.sin(angleRad);
+
+        // chaque texte est réinversé localement pour être lisible
+        const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        textGroup.setAttribute("transform", "scale(1,-1)");
+
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", x.toFixed(3));
+        t.setAttribute("y", (-y).toFixed(3));
+        t.setAttribute("font-family", "century gothic, arial, calibri");
+        t.setAttribute("font-size", "0.55");
+        t.setAttribute("text-anchor", "middle");
+        t.textContent = a + "°";
+
+        textGroup.appendChild(t);
+        g.appendChild(textGroup);
+    }
+
+    contenu.appendChild(g);
+    </script>
+    <!-- fin angles -->
+
+
+    
+    
+    <a href="#" class="back-button" onclick="window.history.back(); return false;">Retour</a>
+
+
+</body>
+</html>

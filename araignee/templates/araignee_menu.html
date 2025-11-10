@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu Araignée</title>
+    <style>
+        body {
+            font-family: century gothic, arial, calibri;
+            background-color: white;
+            text-align: center;
+        }
+        h1 {
+          color:blue;
+        }
+        .buttons-wrapper {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        a {
+            text-decoration: none;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            color:red;
+            border: 1px solid red;
+            background-color: white;
+            border-radius: 8px;
+        }
+        .back-button:hover {
+            color: white;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Type d'araignée</h1>
+    <div class="buttons-wrapper">
+        <a href="{{ url_for('araignee.araignee_nord') }}">
+            <button>Araignée Nord</button>
+        </a>
+        <a href="{{ url_for('araignee.araignee_sud') }}">
+            <button>Araignée Sud</button>
+        </a>
+    </div>
+    <div class="buttons-wrapper">
+        <a href="{{ url_for('index') }}">
+            <button class="back-button">Retour</button>
+        </a>
+    </div>
+</body>
+</html>

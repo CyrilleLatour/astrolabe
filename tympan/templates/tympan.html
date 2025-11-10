@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tympan de l'astrolabe</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        
+        .chart-wrapper {
+            width: 80vmin;
+            height: 80vmin;
+            max-width: 1000px;
+            max-height: 1000px;
+            margin: 0 auto;
+            position: relative;
+            outline: 1px solid black;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-wrapper svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .button, .button2 {
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px 16px;
+        }
+        #info-box {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 6px 10px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            width: 160px;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+
+        .selection-group select {
+            font-size: 18px; 
+            width: 140px;
+        }
+
+        .selection-group input {
+            font-size: 18px;
+            width: 120px;
+            padding: 5px;
+        }
+
+        .selection-group label {
+            font-size: 18px;
+            min-width: 100px;
+            display: inline-block; 
+        }
+
+    </style>
+
+    <script>
+        // === utilitaires DMS <-> décimal ===
+        function dmsToDecimal(d, m, s) {
+            const dd = (parseFloat(d) || 0) + (parseFloat(m) || 0) / 60 + (parseFloat(s) || 0) / 3600;
+            return dd;
+        }
+        function clamp4(x) {
+            if (isNaN(x)) return "";
+            const str = x.toString();
+            if (!str.includes(".")) return str;
+            const [a,b] = str.split(".");
+            return a + "." + b.slice(0,4);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('reset') === '1') {
+                document.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+                const latitudeField = document.getElementById('latitudeDecimale');
+                if (latitudeField) latitudeField.value = '';
+            }
+
+            const degresSelect   = document.getElementById('degres');
+            const minutesSelect  = document.getElementById('minutes');
+            const secondesSelect = document.getElementById('secondes');
+            const latInput       = document.getElementById('latitudeDecimale');
+            const chartWrapper   = document.querySelector('.chart-wrapper');
+
+            function hideChart() {
+                if (chartWrapper) chartWrapper.style.display = 'none';
+            }
+
+            function updateLatitudeFromDMS() {
+                if (degresSelect.value !== "" && minutesSelect.value === "") minutesSelect.value = "0";
+                if (degresSelect.value !== "" && secondesSelect.value === "") secondesSelect.value = "0";
+
+                if (degresSelect.value !== "") {
+                    const d = parseFloat(degresSelect.value) || 0;
+                    const m = parseFloat(minutesSelect.value) || 0;
+                    const s = parseFloat(secondesSelect.value) || 0;
+                    const dec = dmsToDecimal(d,m,s);
+                    if (latInput) latInput.value = clamp4(dec);
+                }
+                hideChart();
+            }
+
+            function updateDMSFromLatitude() {
+                const v = parseFloat(latInput.value);
+                if (isNaN(v) || v === 0) {
+                    degresSelect.value = "";
+                    minutesSelect.value = "";
+                    secondesSelect.value = "";
+                    return;
+                }
+                const deg = Math.floor(v);
+                const minutesFloat = (v - deg) * 60;
+                const min = Math.floor(minutesFloat);
+                const sec = Math.round((minutesFloat - min) * 60);
+
+                degresSelect.value = String(deg);
+                minutesSelect.value = String(min);
+                secondesSelect.value = String(sec);
+                
+                hideChart();
+            }
+
+            if (degresSelect)  degresSelect.addEventListener('change', updateLatitudeFromDMS);
+            if (minutesSelect) minutesSelect.addEventListener('change', updateLatitudeFromDMS);
+            if (secondesSelect)secondesSelect.addEventListener('change', updateLatitudeFromDMS);
+
+            if (latInput) {
+                latInput.addEventListener('input', function() {
+                    if (this.value && this.value.includes('.')) {
+                        const parts = this.value.split('.');
+                        if (parts[1].length > 4) this.value = clamp4(parseFloat(this.value));
+                    }
+                    updateDMSFromLatitude();
+                });
+            }
+
+            const resetButton = document.getElementById('reset-button');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    document.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+                    if (latInput) latInput.value = '';
+                    if (chartWrapper) chartWrapper.style.display = 'none';
+                    localStorage.clear();
+                    sessionStorage.clear();
+                });
+            }
+        });
+    </script>
+</head>
+
+<body>
+<div class="container">
+    <h1>Tympan de l'Astrolabe</h1>
+
+    <div class="controls">
+        <form method="POST" action="/tympan/" id="tympanForm">
+            <div class="selection-group">
+                <label for="degres">Degrés:</label>
+                <select name="degres" id="degres">
+                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude and latitude|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    {% for i in range(1, 66) %}
+                    <option value="{{ i }}" {% if not first_visit and latitude and latitude|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="selection-group">
+                <label for="minutes">Minutes:</label>
+                <select name="minutes" id="minutes">
+                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude and ((latitude|float % 1) * 60)|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    {% for i in range(1, 60) %}
+                    <option value="{{ i }}" {% if not first_visit and latitude and ((latitude|float % 1) * 60)|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="selection-group">
+                <label for="secondes">Secondes:</label>
+                <select name="secondes" id="secondes">
+                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude and ((latitude|float % 1) * 60 % 1 * 60)|round|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    {% for i in range(1, 60) %}
+                    <option value="{{ i }}" {% if not first_visit and latitude and ((latitude|float % 1) * 60 % 1 * 60)|round|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="selection-group">
+                <label for="latitudeDecimale">Latitude (degrés décimaux):</label>
+                <input style="width:100px" type="text" id="latitudeDecimale" name="latitudeDecimale" placeholder="Sélectionner" required
+                       value="{% if not first_visit and latitude and reset != '1' %}{{ latitude|float|round(4) }}{% endif %}">
+            </div>
+
+            <div class="selection-group">
+                <button class="button" type="submit">Générer le Tympan</button>
+                <button type="button" id="reset-button" class="button2">Réinitialiser</button>
+            </div>
+        </form>
+    </div>
+
+    {% if show_chart %}
+    {% if fixed_radius_suppl %}
+        {% set facteur = 140 / rayon_equateur %}
+        {% set centre_y = 300 %}
+        
+        <div id="info-box">
+            x: <span id="x">0.00</span><br>
+            y: <span id="y">0.00</span><br>
+            distance: <span id="dist">0.00</span>
+        </div>
+        
+        <div class="chart-wrapper" data-facteur="{{ facteur }}">
+            <svg viewBox="0 0 600 600">
+                {% if latitude == 0 %}
+                <!-- ========================================= -->
+                <!-- RENDU SPÉCIAL POUR LATITUDE 0° (ÉQUATEUR) -->
+                <!-- ========================================= -->
+                
+                <defs>
+                    <mask id="masque-exterieur-equateur">
+                        <rect width="600" height="600" fill="white" />
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="black" />
+                    </mask>
+                    
+                    <mask id="masque-horizon-equateur">
+                        <rect width="600" height="600" fill="black" />
+                        <!-- Montrer seulement au-dessus de l'horizon (y < centre_y) -->
+                        <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
+                    </mask>
+                </defs>
+                
+                <!-- Cercle Équateur (bleu) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_equateur * facteur }}" fill="none" stroke="RoyalBlue" stroke-width="2"/>
+                
+                <!-- Cercle Capricorne (rouge) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_capricorne * facteur }}" fill="none" stroke="Red" stroke-width="2"/>
+                
+                <!-- Cercle Écliptique (orange) -->
+                <circle
+                    cx="300"
+                    cy="{{ centre_y - (position_centre_ecliptique * facteur) }}"
+                    r="{{ fixed_radius_ecliptique * facteur }}"
+                    fill="none"
+                    stroke="orange"
+                    stroke-width="2"
+                />
+                
+                <!-- Cercle Cancer (vert) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="none" stroke="Green" stroke-width="2"/>
+                
+                <!-- Cercle extérieur (violet) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="none" stroke="purple" stroke-width="2"/>
+                
+                <!-- Almucantarats -->
+                {% for alm in almucantarats %}
+                    {% if not alm.get('invisible', False) %}
+                        <circle
+                            cx="300"
+                            cy="{{ centre_y - (alm.cy * facteur) }}"
+                            r="{{ alm.rayon * facteur }}"
+                            stroke="{% if alm.hauteur == 45 %}red{% else %}{{ alm.style.stroke }}{% endif %}"
+                            stroke-width="{% if alm.hauteur == 45 %}1.5{% else %}{{ alm.style.stroke_width }}{% endif %}"
+                            stroke-opacity="{{ alm.style.stroke_opacity }}"
+                            fill="{{ alm.style.fill }}"
+                        />
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Horizon (ligne horizontale) -->
+                {% if horizon and horizon.type == 'ligne_horizontale' %}
+                    <line
+                        x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                        y1="{{ centre_y }}"
+                        x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                        y2="{{ centre_y }}"
+                        stroke="{{ horizon.style.stroke }}"
+                        stroke-width="{{ horizon.style.stroke_width }}"
+                        stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                    />
+                {% endif %}
+                
+                <!-- Courbes d'azimut (masquées sous l'horizon) -->
+                <g mask="url(#masque-horizon-equateur)">
+                    {% for courbe in courbes_azimut %}
+                        {% if courbe.get('type') == 'ligne_verticale' %}
+                            <line
+                                x1="{{ 300 + (courbe.x * facteur) }}"
+                                y1="{{ centre_y - (fixed_radius_suppl * facteur) }}"
+                                x2="{{ 300 + (courbe.x * facteur) }}"
+                                y2="{{ centre_y + (fixed_radius_suppl * facteur) }}"
+                                stroke="{{ courbe.color }}"
+                                stroke-width="0.5"
+                                fill="none"/>
+                        {% else %}
+                            <path d="
+                                {% for point in courbe.points %}
+                                    {% if loop.first %}
+                                        M {{ 300 + point[0] * facteur }} {{ centre_y - point[1] * facteur }}
+                                    {% else %}
+                                        L {{ 300 + point[0] * facteur }} {{ centre_y - point[1] * facteur }}
+                                    {% endif %}
+                                {% endfor %}
+                            " stroke="{% if courbe.azimut == 90 or courbe.azimut == 270 %}red{% else %}{{ courbe.color }}{% endif %}"
+                              stroke-width="{% if courbe.azimut == 90 or courbe.azimut == 270 %}1.5{% else %}1{% endif %}"
+                              fill="none"/>
+                        {% endif %}
+                    {% endfor %}
+                </g>
+                
+                <!-- Masque final : cacher tout en dehors du cercle violet -->
+                <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-equateur)" />
+                
+                <!-- Étiquette latitude -->
+                {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
+                {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
+                {% set label_y = (capricorne_y + suppl_y) / 2 %}
+                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black">
+                    {{ latitude_dms }}
+                </text>
+                
+                <!-- Zone de capture souris -->
+                <rect x="0" y="0" width="600" height="600" fill="transparent" onmousemove="afficherCoordTympan(event)" />
+                
+                {% else %}
+                <!-- ========================================= -->
+                <!-- RENDU NORMAL POUR LATITUDES > 0° -->
+                <!-- ========================================= -->
+                <defs>
+                    <clipPath id="clip-cercle-suppl">
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" />
+                    </clipPath>
+                    
+                    <mask id="masque-exterieur-suppl">
+                        <rect width="600" height="600" fill="white" />
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="black" />
+                    </mask>
+
+                    <mask id="masque-interieur-alm80">
+                        <rect width="600" height="600" fill="black" />
+                        {% for alm in almucantarats %}
+                            {% if alm.hauteur == 70 and alm.type != 'ligne_horizontale' %}
+                                <circle cx="300" cy="{{ centre_y - (alm.cy * facteur) }}" r="{{ alm.rayon * facteur }}" fill="white" />
+                            {% endif %}
+                        {% endfor %}
+                    </mask>
+
+                    <mask id="masque-zone-heures-inegales">
+                        <rect width="600" height="600" fill="black" />
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="white" />
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="black" />
+                        {% if horizon %}
+                            {% if horizon.type == 'ligne_horizontale' %}
+                                <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="black" />
+                            {% else %}
+                                <circle cx="300" cy="{{ centre_y - (horizon.cy * facteur) }}" r="{{ horizon.rayon * facteur }}" fill="black" />
+                            {% endif %}
+                        {% endif %}
+                    </mask>
+
+                    <mask id="masque-heures-inegales-capricorne">
+                        <rect width="600" height="600" fill="black" />
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_capricorne * facteur }}" fill="white" />
+                    </mask>
+
+                    <mask id="masque-interieur-horizon">
+                        <rect width="600" height="600" fill="black" />
+                        {% if horizon %}
+                            {% if horizon.type == 'ligne_horizontale' %}
+                                <!-- Horizon est une ligne horizontale - montrer seulement au-dessus -->
+                                <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
+                            {% else %}
+                                {% set horizon_rayon_scaled = horizon.rayon * facteur %}
+                                {% if horizon_rayon_scaled > 1000000 %}
+                                    <!-- Horizon très grand - utiliser un rectangle jusqu'au sommet du cercle -->
+                                    {% set point_haut_astrolabe = horizon.cy - horizon.rayon %}
+                                    {% set point_haut_svg = centre_y - (point_haut_astrolabe * facteur) %}
+                                    <!-- Montrer uniquement AU-DESSUS du point haut de l'horizon -->
+                                    <rect x="0" y="0" width="600" height="{{ point_haut_svg }}" fill="white" />
+                                {% else %}
+                                    <!-- Horizon de taille normale - utiliser le cercle complet -->
+                                    <circle cx="300" cy="{{ centre_y - (horizon.cy * facteur) }}" r="{{ horizon_rayon_scaled }}" fill="white" />
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </mask>
+                </defs>
+
+                <!-- Almucantarats -->
+                <g clip-path="url(#clip-cercle-suppl)">
+                    {% for alm in almucantarats %}
+                        {% if not alm.get('invisible', False) %}
+                            {% if alm.type == 'ligne_horizontale' %}
+                                <line
+                                    x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                                    y1="{{ centre_y }}"
+                                    x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                                    y2="{{ centre_y }}"
+                                    stroke="{% if alm.hauteur == 45 %}red{% else %}{{ alm.style.stroke }}{% endif %}"
+                                    stroke-width="{% if alm.hauteur == 45 %}1.5{% else %}{{ alm.style.stroke_width }}{% endif %}"
+                                    stroke-opacity="{{ alm.style.stroke_opacity }}"
+                                />
+                            {% else %}
+                                <circle
+                                    cx="300"
+                                    cy="{{ centre_y - (alm.cy * facteur) }}"
+                                    r="{{ alm.rayon * facteur }}"
+                                    stroke="{% if alm.hauteur == 45 %}red{% else %}{{ alm.style.stroke }}{% endif %}"
+                                    stroke-width="{% if alm.hauteur == 45 %}1.5{% else %}{{ alm.style.stroke_width }}{% endif %}"
+                                    stroke-opacity="{{ alm.style.stroke_opacity }}"
+                                    fill="{{ alm.style.fill }}"
+                                />
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </g>
+
+                <!-- Ligne du cercle suppl. vers l'horizon -->
+                {% if ligne_suppl_horizon %}
+                    <line
+                        x1="{{ ligne_suppl_horizon.x1 }}"
+                        y1="{{ ligne_suppl_horizon.y1 }}"
+                        x2="{{ ligne_suppl_horizon.x2 }}"
+                        y2="{{ ligne_suppl_horizon.y2 }}"
+                        stroke="{{ ligne_suppl_horizon.style.stroke }}"
+                        stroke-width="{{ ligne_suppl_horizon.style.stroke_width }}"
+                        fill="{{ ligne_suppl_horizon.style.fill }}"
+                        mask="url(#masque-interieur-alm80)"
+                    />
+                {% endif %}
+
+                <!-- Courbes d'azimut -->
+                <g id="azimut-paths" mask="url(#masque-interieur-horizon)">
+                    {% for courbe in courbes_azimut %}
+                        {% if courbe.get('type') == 'ligne_verticale' %}
+                            <line
+                                x1="{{ 300 + (courbe.x * facteur) }}"
+                                y1="{{ centre_y - (fixed_radius_suppl * facteur) }}"
+                                x2="{{ 300 + (courbe.x * facteur) }}"
+                                y2="{{ centre_y + (fixed_radius_suppl * facteur) }}"
+                                stroke="{{ courbe.color }}"
+                                stroke-width="0.5"
+                                fill="none"/>
+                        {% else %}
+                            <path d="
+                                {% for point in courbe.points %}
+                                    {% if loop.first %}
+                                        M {{ 300 + point[0] * facteur }} {{ centre_y - point[1] * facteur }}
+                                    {% else %}
+                                        L {{ 300 + point[0] * facteur }} {{ centre_y - point[1] * facteur }}
+                                    {% endif %}
+                                {% endfor %}
+                            " stroke="{% if courbe.azimut == 90 or courbe.azimut == 270 %}red{% else %}{{ courbe.color }}{% endif %}"
+                              stroke-width="{% if courbe.azimut == 90 or courbe.azimut == 270 %}1.5{% else %}1{% endif %}"
+                              fill="none"/>
+                        {% endif %}
+                    {% endfor %}
+                </g>
+
+                <!-- Horizon -->
+                {% if horizon %}
+                    {% if horizon.type == 'ligne_horizontale' %}
+                        <line
+                            x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                            y1="{{ centre_y }}"
+                            x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                            y2="{{ centre_y }}"
+                            stroke="{{ horizon.style.stroke }}"
+                            stroke-width="{{ horizon.style.stroke_width }}"
+                            stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                        />
+                    {% else %}
+                        {% set horizon_rayon_svg = horizon.rayon * facteur %}
+                        {% set horizon_cy_svg = horizon.cy * facteur %}
+                        {% set horizon_center_y = centre_y - horizon_cy_svg %}
+                        
+                        {% if horizon_rayon_svg > 1000000 %}
+                            <!-- Horizon très grand - limiter à une valeur renderable -->
+                            <!-- Le point haut du cercle doit rester à centre_y - (cy - rayon) * facteur -->
+                            {% set point_haut_astrolabe = horizon.cy - horizon.rayon %}
+                            {% set point_haut_svg = centre_y - (point_haut_astrolabe * facteur) %}
+                            {% set clamped_radius = 10000 %}
+                            {% set adjusted_center_y = point_haut_svg + clamped_radius %}
+                            <circle
+                                cx="300"
+                                cy="{{ adjusted_center_y }}"
+                                r="{{ clamped_radius }}"
+                                stroke="{{ horizon.style.stroke }}"
+                                stroke-width="{{ horizon.style.stroke_width }}"
+                                stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                                fill="{{ horizon.style.fill }}"
+                            />
+                        {% else %}
+                            <circle
+                                cx="300"
+                                cy="{{ horizon_center_y }}"
+                                r="{{ horizon_rayon_svg }}"
+                                stroke="{{ horizon.style.stroke }}"
+                                stroke-width="{{ horizon.style.stroke_width }}"
+                                stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                                fill="{{ horizon.style.fill }}"
+                            />
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+
+                <!-- Cercles principaux -->
+                <g>
+                    <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_equateur * facteur }}" fill="none" stroke="RoyalBlue" stroke-width="2"/>
+                    <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_capricorne * facteur }}" fill="none" stroke="Red" stroke-width="2"/>
+                    <circle
+                        cx="300"
+                        cy="{{ centre_y - (position_centre_ecliptique * facteur) }}"
+                        r="{{ fixed_radius_ecliptique * facteur }}"
+                        fill="none"
+                        stroke="orange"
+                        stroke-width="2"
+                    />
+                </g>
+
+                <!-- Cercles Cancer et Suppl -->
+                <g>
+                    <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="none" stroke="Green" stroke-width="2"/>
+                    <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="none" stroke="purple" stroke-width="2"/>
+                </g>
+
+                <!-- Points verts sur Cancer à gauche 
+                {% if points_heures and points_heures.points_cancer_gauche %}
+                    {% for point in points_heures.points_cancer_gauche %}
+                    <circle
+                        cx="{{ point.x }}"
+                        cy="{{ point.y }}"
+                        r="3"
+                        fill="green"
+                    />
+                    {% endfor %}
+                {% endif %}
+                
+                Points verts sur Cancer à droite
+                {% if points_heures and points_heures.points_cancer_droite %}
+                    {% for point in points_heures.points_cancer_droite %}
+                    <circle
+                        cx="{{ point.x }}"
+                        cy="{{ point.y }}"
+                        r="3"
+                        fill="green"
+                    />
+                    {% endfor %}
+                {% endif %}
+                
+                Points bleus sur Équateur à gauche
+                {% if points_heures and points_heures.points_equateur_gauche %}
+                    {% for point in points_heures.points_equateur_gauche %}
+                    <circle
+                        cx="{{ point.x }}"
+                        cy="{{ point.y }}"
+                        r="3"
+                        fill="blue"
+                    />
+                    {% endfor %}
+                {% endif %}
+                
+                Points bleus sur Équateur à droite
+                {% if points_heures and points_heures.points_equateur_droite %}
+                    {% for point in points_heures.points_equateur_droite %}
+                    <circle
+                        cx="{{ point.x }}"
+                        cy="{{ point.y }}"
+                        r="3"
+                        fill="blue"
+                    />
+                    {% endfor %}
+                {% endif %}
+
+                Points rouges sur Capricorne à gauche
+                {% if points_heures and points_heures.points_capricorne_gauche %}
+                    {% for point in points_heures.points_capricorne_gauche %}
+                    <circle
+                        cx="{{ point.x }}"
+                        cy="{{ point.y }}"
+                        r="3"
+                        fill="red"
+                    />
+                    {% endfor %}
+                {% endif %}
+                
+                Points rouges sur Capricorne à droite
+                {% if points_heures and points_heures.points_capricorne_droite %}
+                    {% for point in points_heures.points_capricorne_droite %}
+                    <circle
+                        cx="{{ point.x }}"
+                        cy="{{ point.y }}"
+                        r="3"
+                        fill="red"
+                    />
+                    {% endfor %}
+                {% endif %} -->
+
+                <!-- Courbes d'heures inégales à gauche -->
+                {% if points_heures and points_heures.courbes_gauche %}
+                    {% for courbe in points_heures.courbes_gauche %}
+                    <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
+                             A {{ courbe.rayon }} {{ courbe.rayon }} 
+                             0 {{ courbe.large_arc }} {{ courbe.sweep }} 
+                             {{ courbe.p3.x }} {{ courbe.p3.y }}" 
+                          stroke="black" stroke-width="1" fill="none"/>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Courbes d'heures inégales à droite -->
+                {% if points_heures and points_heures.courbes_droite %}
+                    {% for courbe in points_heures.courbes_droite %}
+                    <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
+                             A {{ courbe.rayon }} {{ courbe.rayon }} 
+                             0 {{ courbe.large_arc }} {{ courbe.sweep }} 
+                             {{ courbe.p3.x }} {{ courbe.p3.y }}" 
+                          stroke="black" stroke-width="1" fill="none"/>
+                    {% endfor %}
+                {% endif %}
+
+
+
+
+                <!-- Ligne 6e heure -->
+                <line
+                    x1="300"
+                    y1="{{ centre_y + (fixed_radius_cancer * facteur) }}"
+                    x2="300"
+                    y2="{{ centre_y + (fixed_radius_capricorne * facteur) }}"
+                    stroke="black"
+                    stroke-width="1"
+                />
+
+                <!-- Cercles de crépuscules -->
+                {% for cercle in cercles_crepuscules %}
+                    {% if cercle.get('type') == 'ligne_horizontale' %}
+                        <line
+                            x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                            y1="{{ centre_y - (cercle.y_offset * facteur) }}"
+                            x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                            y2="{{ centre_y - (cercle.y_offset * facteur) }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° (extrapolé - droite)</title>
+                        </line>
+                    {% else %}
+                        <circle
+                            cx="{{ 300 + (cercle.cx * facteur) }}"
+                            cy="{{ centre_y - (cercle.cy * facteur) }}"
+                            r="{{ cercle.rayon * facteur }}"
+                            fill="{{ cercle.style.fill if cercle.style is defined else 'none' }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° {% if cercle.style is defined and cercle.style.stroke == 'gray' %}(calculé){% elif cercle.style is defined and cercle.style.stroke == 'red' %}(extrapolé){% endif %}</title>
+                        </circle>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Masques finaux -->
+                <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-suppl)" />
+                <rect width="600" height="600" fill="white" mask="url(#masque-interieur-alm80)" />
+                
+                <!-- Étiquette latitude -->
+                {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
+                {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
+                {% set label_y = (capricorne_y + suppl_y) / 2 %}
+                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black">
+                    {{ latitude_dms }}
+                </text>
+                
+                <!-- Zone de capture souris -->
+                <rect x="0" y="0" width="600" height="600" fill="transparent" onmousemove="afficherCoordTympan(event)" />
+                {% endif %}
+            </svg>
+        </div>
+
+        <div class="echelle-info" style="margin-top: 10px;">
+            <strong>Échelle:</strong> diamètre de l'astrolabe = {{ (rayon_equateur * 24.7 / 6)|round(0)|int }} cm
+        </div>
+    {% else %}
+        <div style="background: red; color: white; padding: 10px; margin: 10px;">
+            fixed_radius_suppl est None ou False
+        </div>
+    {% endif %}
+    {% else %}
+        <div class="message">
+            <p>Veuillez sélectionner une latitude pour générer le tympan.</p>
+        </div>
+    {% endif %}
+</div>
+
+<a href="{{ url_for('tympan.menu') }}" class="back-button">Retour</a>
+
+{% if show_chart and fixed_radius_suppl %}
+<script>
+function afficherCoordTympan(evt) {
+    const svg = evt.target.ownerSVGElement;
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+    const chartWrapper = document.querySelector('.chart-wrapper');
+    const facteur = parseFloat(chartWrapper.getAttribute('data-facteur')) || 1;
+    const centre_y = 300;
+    
+    const x_reel = (cursorpt.x - 300) / facteur;
+    const y_reel = (centre_y - cursorpt.y) / facteur;
+    
+    const x = x_reel.toFixed(2);
+    const y = y_reel.toFixed(2);
+    const dist = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
+
+    document.getElementById("x").textContent = x;
+    document.getElementById("y").textContent = y;
+    document.getElementById("dist").textContent = dist;
+}
+</script>
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!-- Ajouter à l'intérieur du SVG principal -->
+<!-- Groupe pour les heures inégales -->
+<g id="heures-inegales">
+    {% if heures_inegales %}
+        {% for heure in heures_inegales %}
+            <path d="
+                {% for point in heure.points %}
+                    {% if loop.first %}
+                        M {{ 300 + point[0] * facteur }} {{ 250 - point[1] * facteur }}
+                    {% else %}
+                        L {{ 300 + point[0] * facteur }} {{ 250 - point[1] * facteur }}
+                    {% endif %}
+                {% endfor %}
+            " 
+            stroke="{{ heure.style.stroke }}"
+            stroke-width="{{ heure.style.stroke_width }}"
+            stroke-opacity="{{ heure.style.stroke_opacity }}"
+            stroke-dasharray="{{ heure.style.stroke_dasharray }}"
+            fill="{{ heure.style.fill }}"
+            />
+            
+            <!-- Étiquette de l'heure (optionnel) -->
+            {% if heure.heure % 3 == 0 and heure.points|length > 0 %}
+                {% set last_point = heure.points[-1] %}
+                <text 
+                    x="{{ 300 + last_point[0] * facteur + 5 }}"
+                    y="{{ 250 - last_point[1] * facteur }}"
+                    font-size="10"
+                    fill="blue"
+                >{{ heure.heure }}</text>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</g>
+
+<!-- Ajouter après les cercles principaux -->
+<!-- Point d'intersection entre l'horizon et le Tropique du Capricorne (côté gauche) -->
+<g id="point-intersection-capricorne">
+    {% if point_intersection %}
+        <circle
+            cx="{{ point_intersection.x }}"
+            cy="{{ point_intersection.y }}"
+            r="3"
+            fill="black"
+        />
+    {% endif %}
+</g>

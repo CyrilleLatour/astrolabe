@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Calcul de la latitude</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+        label {
+            margin-right: 5px;
+        }
+        input {
+            width: 60px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 5px 15px;
+        }
+        .resultat {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+            display: inline-block;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 6px 14px;
+            background-color: #eee;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Convertisseur de latitude (DMS → Décimal)</h1>
+
+    <form method="POST">
+        <label>Degrés :</label>
+        <input type="number" name="degres" required>
+        <label>Minutes :</label>
+        <input type="number" name="minutes" required>
+        <label>Secondes :</label>
+        <input type="number" name="secondes" step="0.01" required>
+        <button type="submit">Convertir</button>
+    </form>
+
+    {% if latitude_dms %}
+        <div class="resultat">
+            <p><strong>Latitude DMS :</strong> {{ latitude_dms }}</p>
+            <p><strong>Latitude décimale :</strong> {{ latitude_decimal }}</p>
+        </div>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('tympan.tympan') }}" class="back-button">← Retour au tympan</a>
+
+</body>
+</html>

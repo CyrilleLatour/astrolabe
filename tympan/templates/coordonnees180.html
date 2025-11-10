@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intersection Azimut 180°</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            margin-bottom: 10px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        svg {
+            width: 100%;
+            height: 500px;
+            background-color: #eef;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Intersection avec Azimut 180°</h1>
+        <div class="input-group">
+            <label for="latitude-deg">Latitude (°) :</label>
+            <input type="number" id="latitude-deg" value="5">
+        </div>
+        <div class="input-group">
+            <label for="latitude-min">Minutes :</label>
+            <input type="number" id="latitude-min" value="0">
+        </div>
+        <div class="input-group">
+            <label for="latitude-sec">Secondes :</label>
+            <input type="number" id="latitude-sec" value="0">
+        </div>
+        <div class="input-group">
+            <label for="equator-radius">Rayon de l'Équateur :</label>
+            <input type="number" id="equator-radius" value="6">
+        </div>
+        <div class="input-group">
+            <label for="hauteur">Hauteur de l'almucantarat :</label>
+            <input type="number" id="hauteur" value="-6">
+        </div>
+        <button class="button" onclick="getIntersectionAzimut180()">Intersection 180°</button>
+        <svg id="svg-canvas"></svg>
+    </div>
+
+    <script>
+        console.log("Script bien chargé !");
+        function getIntersectionAzimut180() {
+            const latitudeDeg = parseFloat(document.getElementById('latitude-deg').value) || 0;
+            const latitudeMin = parseFloat(document.getElementById('latitude-min').value) || 0;
+            const latitudeSec = parseFloat(document.getElementById('latitude-sec').value) || 0;
+            const equatorRadius = parseFloat(document.getElementById('equator-radius').value) || 6;
+            const hauteur = parseFloat(document.getElementById('hauteur').value);
+
+            const latitudeDec = latitudeDeg + latitudeMin / 60 + latitudeSec / 3600;
+
+            fetch("/tympan/intersection_azimut_180", {  // Bien vérifier que la route est /tympan/intersection_azimut_180
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    latitude: latitudeDec,
+                    rayon_equateur: equatorRadius,
+                    hauteur: hauteur
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Réponse du serveur:", data);
+                if (data.success) {
+                    console.log(`Intersection trouvée: x=${data.x}, y=${data.y}`);
+                    const x_svg = (data.x / equatorRadius) * 100;
+                    const y_svg = -(data.y / equatorRadius) * 100;  // Inversé car SVG augmente vers le bas
+                    console.log(`Coordonnées SVG : x=${x_svg}, y=${y_svg}`); 
+                    afficherPointSurSVG(x_svg, y_svg);
+                } else {
+                    alert("Intersection impossible à calculer.");
+                }
+            })
+            .catch(error => {
+                console.error("Erreur:", error);
+                alert("Erreur lors de la requête: " + error);
+            });
+        }
+
+        function afficherPointSurSVG(x, y) {
+            const svg = document.getElementById("svg-canvas");
+
+            // Nettoyer le SVG
+            svg.innerHTML = '';
+
+            // Définir un viewBox pour voir toute la zone de l'astrolabe
+            svg.setAttribute("viewBox", "-300 -300 600 600");
+
+            // Ajouter un cercle au centre pour référence
+            const centerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            centerCircle.setAttribute("cx", 0);
+            centerCircle.setAttribute("cy", 0);
+            centerCircle.setAttribute("r", 1);
+            centerCircle.setAttribute("fill", "black");
+            svg.appendChild(centerCircle);
+
+            // Ajouter une ligne verticale pour l'azimut 180°
+            const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            line.setAttribute("x1", 0);
+            line.setAttribute("y1", -100);
+            line.setAttribute("x2", 0);
+            line.setAttribute("y2", 100);
+            line.setAttribute("stroke", "blue");
+            line.setAttribute("stroke-width", 0.5);
+            svg.appendChild(line);
+
+            // Ajouter le point d'intersection
+            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            circle.setAttribute("cx", x);
+            circle.setAttribute("cy", y);
+            circle.setAttribute("r", 2);
+            circle.setAttribute("fill", "red");
+            svg.appendChild(circle);
+
+            // Ajouter du texte pour afficher les coordonnées
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", x + 5);
+            text.setAttribute("y", y);
+            text.setAttribute("font-size", "10");
+            text.textContent = `(${x.toFixed(2)}, ${y.toFixed(2)})`;
+            svg.appendChild(text);
+        }
+    </script>
+</body>
+</html>
