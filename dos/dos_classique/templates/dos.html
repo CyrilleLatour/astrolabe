@@ -344,48 +344,43 @@
         </script>
 
 
-        <!-- numéros des heures inégales
-        <script>
-        const rayon = 9.25;   // rayon du cercle
-        const angles = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180];  // tes angles en degrés
-        const chiffres = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];               // ce que tu veux afficher
-        // --------------------------------
+        
+        <!-- numéros des heures inégales -->
+<script>
+const rayonHeures = 8.2 * 1.2;
+const anglesHeures = [90, 97.5, 105, 112.5, 120, 127.5, 135, 142.5, 150, 157.5, 165, 172.5];
+const decalagesIndividuels = [1.9, 2, 2.5, 2.2, 2.4, 2.9, 3.1, 3.5, 4.1, 4.7, 5.2, 5.5];  // décalage pour chaque nombre (12, 11, 10, ..., 1)
+const chiffres = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1];
 
-        // on sélectionne le SVG existant
-        const svg = document.querySelector("svg");
+const svgHeures = document.querySelector("svg");
 
-        // groupe général (inversé globalement, comme ton système)
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        g.setAttribute("transform", "scale(1,-1)");
+const gHeures = document.createElementNS("http://www.w3.org/2000/svg", "g");
+gHeures.setAttribute("transform", "scale(1,-1)");
 
-        // génération des chiffres
-        for (let i = 0; i < angles.length; i++) {
-        const a = angles[i];
-        const angleRad = a * Math.PI / 180;
-        const x = rayon * Math.cos(angleRad);
-        const y = rayon * Math.sin(angleRad);
+for (let i = 0; i < anglesHeures.length; i++) {
+    const a = anglesHeures[i] + decalagesIndividuels[i];  // application du décalage individuel
+    const angleRad = a * Math.PI / 180;
+    const x = rayonHeures * Math.cos(angleRad);
+    const y = rayonHeures * Math.sin(angleRad);
+    
+    const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    textGroup.setAttribute("transform", "scale(1,-1)");
+    
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", x.toFixed(3));
+    t.setAttribute("y", (-y).toFixed(3));
+    t.setAttribute("font-family", "monospace");
+    t.setAttribute("font-size", "0.4");
+    t.setAttribute("text-anchor", "middle");
+    t.setAttribute("dominant-baseline", "middle");
+    t.textContent = chiffres[i];
+    
+    textGroup.appendChild(t);
+    gHeures.appendChild(textGroup);
+}
 
-        // groupe local pour remettre le texte à l'endroit
-        const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        textGroup.setAttribute("transform", "scale(1,-1)");
-
-        // création du texte
-        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        t.setAttribute("x", x.toFixed(3));
-        t.setAttribute("y", (-y).toFixed(3)); // inversé car parent déjà inversé
-        t.setAttribute("font-family", "century gothic, arial, calibri");
-        t.setAttribute("font-size", "0.55");
-        t.setAttribute("text-anchor", "middle");
-        t.textContent = chiffres[i]; // texte affiché (1 à 12)
-
-        textGroup.appendChild(t);
-        g.appendChild(textGroup);
-        }
-
-        // on ajoute le groupe au SVG
-        svg.appendChild(g);
-        </script>
-        fin des numéros des heures inégales -->
+svgHeures.appendChild(gHeures);
+</script>
 
 
 
@@ -542,21 +537,21 @@ L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
 
     <!-- angles du 1er quadrant - PLACÉ TOUT EN BAS POUR ÊTRE AU-DESSUS DES COURBES -->
     <script>
-    const rayon = 9.25;
-    const angles = [15, 30, 45, 60, 75];
+    const rayonAngles = 7.62;  // RENOMMÉ pour éviter le conflit
+    const anglesQuadrant1 = [15, 30, 45, 60, 75];  // RENOMMÉ aussi
 
-    const svg = document.querySelector("svg");
-    const contenu = document.querySelector("#contenu");
+    const svgAngles = document.querySelector("svg");
+    const contenuAngles = document.querySelector("#contenu");
 
     // groupe général inversé
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("transform", "scale(1,-1)");
+    const gAngles = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    gAngles.setAttribute("transform", "scale(1,-1)");
 
     // génération des textes
-    for (let a of angles) {
+    for (let a of anglesQuadrant1) {
         const angleRad = a * Math.PI / 180;
-        const x = rayon * Math.cos(angleRad);
-        const y = rayon * Math.sin(angleRad);
+        const x = rayonAngles * Math.cos(angleRad);
+        const y = rayonAngles * Math.sin(angleRad);
 
         // chaque texte est réinversé localement pour être lisible
         const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -571,10 +566,10 @@ L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
         t.textContent = a + "°";
 
         textGroup.appendChild(t);
-        g.appendChild(textGroup);
+        gAngles.appendChild(textGroup);
     }
 
-    contenu.appendChild(g);
+    contenuAngles.appendChild(gAngles);
     </script>
     <!-- fin angles -->
 

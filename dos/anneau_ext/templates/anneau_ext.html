@@ -110,64 +110,64 @@
 
             
             <!-- ✅ Traits noirs : jours 5, 10, 15, 20, 25, 30 (sauf le 30 pour les mois à 30 jours) -->
-<g id="traits_intermediaires_tous_mois"></g>
+            <g id="traits_intermediaires_tous_mois"></g>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const svgNS = "http://www.w3.org/2000/svg";
-    const contenu = document.getElementById("traits_intermediaires_tous_mois");
+            <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const svgNS = "http://www.w3.org/2000/svg";
+                const contenu = document.getElementById("traits_intermediaires_tous_mois");
 
-    // Durée de chaque mois (année non bissextile)
-    const annee = [
-        { nom: "Janvier", jours: 31 },
-        { nom: "Février", jours: 28 },
-        { nom: "Mars", jours: 31 },
-        { nom: "Avril", jours: 30 },
-        { nom: "Mai", jours: 31 },
-        { nom: "Juin", jours: 30 },
-        { nom: "Juillet", jours: 31 },
-        { nom: "Août", jours: 31 },
-        { nom: "Septembre", jours: 30 },
-        { nom: "Octobre", jours: 31 },
-        { nom: "Novembre", jours: 30 },
-        { nom: "Décembre", jours: 31 }
-    ];
+                // Durée de chaque mois (année non bissextile)
+                const annee = [
+                    { nom: "Janvier", jours: 31 },
+                    { nom: "Février", jours: 28 },
+                    { nom: "Mars", jours: 31 },
+                    { nom: "Avril", jours: 30 },
+                    { nom: "Mai", jours: 31 },
+                    { nom: "Juin", jours: 30 },
+                    { nom: "Juillet", jours: 31 },
+                    { nom: "Août", jours: 31 },
+                    { nom: "Septembre", jours: 30 },
+                    { nom: "Octobre", jours: 31 },
+                    { nom: "Novembre", jours: 30 },
+                    { nom: "Décembre", jours: 31 }
+                ];
 
-    let jour_courant = 9; // position du 31 décembre précédent
-    const r_in = 10.00;
-    const r_out = 10.55;
+                let jour_courant = 9; // position du 31 décembre précédent
+                const r_in = 10.00;
+                const r_out = 10.55;
 
-    for (const m of annee) {
-        // Pour chaque mois : jours multiples de 5
-        for (let j = 5; j < m.jours; j += 5) {
-            // ⚠️ Ne pas placer le trait du 30 pour les mois à 30 jours
-            if (m.jours === 30 && j === 30) continue;
+                for (const m of annee) {
+                    // Pour chaque mois : jours multiples de 5
+                    for (let j = 5; j < m.jours; j += 5) {
+                        // ⚠️ Ne pas placer le trait du 30 pour les mois à 30 jours
+                        if (m.jours === 30 && j === 30) continue;
 
-            const jour_absolu = jour_courant + j;
-            const angle = jour_absolu * 360 / 365;
-            const rad = (angle - 90) * Math.PI / 180;
+                        const jour_absolu = jour_courant + j;
+                        const angle = jour_absolu * 360 / 365;
+                        const rad = (angle - 90) * Math.PI / 180;
 
-            const x1 = r_in * Math.cos(rad);
-            const y1 = r_in * Math.sin(rad);
-            const x2 = r_out * Math.cos(rad);
-            const y2 = r_out * Math.sin(rad);
+                        const x1 = r_in * Math.cos(rad);
+                        const y1 = r_in * Math.sin(rad);
+                        const x2 = r_out * Math.cos(rad);
+                        const y2 = r_out * Math.sin(rad);
 
-            const line = document.createElementNS(svgNS, "line");
-            line.setAttribute("x1", x1.toFixed(3));
-            line.setAttribute("y1", y1.toFixed(3));
-            line.setAttribute("x2", x2.toFixed(3));
-            line.setAttribute("y2", y2.toFixed(3));
-            line.setAttribute("stroke", "black");
-            line.setAttribute("stroke-width", "0.03");
-            line.setAttribute("data-mois", m.nom);
-            line.setAttribute("data-jour", j);
+                        const line = document.createElementNS(svgNS, "line");
+                        line.setAttribute("x1", x1.toFixed(3));
+                        line.setAttribute("y1", y1.toFixed(3));
+                        line.setAttribute("x2", x2.toFixed(3));
+                        line.setAttribute("y2", y2.toFixed(3));
+                        line.setAttribute("stroke", "black");
+                        line.setAttribute("stroke-width", "0.03");
+                        line.setAttribute("data-mois", m.nom);
+                        line.setAttribute("data-jour", j);
 
-            contenu.appendChild(line);
-        }
-        jour_courant += m.jours;
-    }
-});
-</script>
+                        contenu.appendChild(line);
+                    }
+                    jour_courant += m.jours;
+                }
+            });
+            </script>
 
             
 
@@ -229,7 +229,429 @@ document.addEventListener("DOMContentLoaded", () => {
             </script>
             
 
+            <!-- Textes "01" à "12" pour les mois -->
+            <g id="textes_mois"></g>
+            <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const svgNS = "http://www.w3.org/2000/svg";
+                const contenu = document.getElementById("textes_mois");
+
+                // Durée de chaque mois (année non bissextile)
+                const mois = [
+                    { nom: "Janvier", jours: 31 },
+                    { nom: "Février", jours: 28 },
+                    { nom: "Mars", jours: 31 },
+                    { nom: "Avril", jours: 30 },
+                    { nom: "Mai", jours: 31 },
+                    { nom: "Juin", jours: 30 },
+                    { nom: "Juillet", jours: 31 },
+                    { nom: "Août", jours: 31 },
+                    { nom: "Septembre", jours: 30 },
+                    { nom: "Octobre", jours: 31 },
+                    { nom: "Novembre", jours: 30 },
+                    { nom: "Décembre", jours: 31 }
+                ];
+
+                // Rayon fixe pour tous les mois
+                const r_texte = 9.68;
+
+                // Le 31 décembre précédent correspond à jour = 9
+                let jour_courant = 9;
+
+                for (let i = 0; i < mois.length; i++) {
+                    const m = mois[i];
+
+                    // Milieu du mois = début + moitié de la durée
+                    const jour_milieu = jour_courant + m.jours / 2;
+
+                    // Conversion en angle (0° = 31 décembre, sens horaire)
+                    const angle = jour_milieu * 360 / 365;
+                    const rad = (angle - 90) * Math.PI / 180;
+
+                    const x = r_texte * Math.cos(rad);
+                    const y = r_texte * Math.sin(rad);
+
+                    // Création du texte (numéro du mois sur deux chiffres)
+                    const text = document.createElementNS(svgNS, "text");
+                    text.setAttribute("x", x.toFixed(3));
+                    text.setAttribute("y", y.toFixed(3));
+                    text.setAttribute("fill", "red");
+                    text.setAttribute("font-size", "0.5");
+                    text.setAttribute("text-anchor", "middle");
+                    text.setAttribute("dominant-baseline", "middle");
+                    text.setAttribute("transform", `rotate(${angle}, ${x.toFixed(3)}, ${y.toFixed(3)})`);
+                    text.textContent = String(i + 1).padStart(2, "0");
+
+                    contenu.appendChild(text);
+
+                    // Passage au mois suivant
+                    jour_courant += m.jours;
+                }
+            });
+            </script>
+
+
+
+            <!-- Texte "CAPRICORNUS" -->
+            <g id="texte_capricornus" transform="rotate(120)"></g>
+
+            <!-- Texte "AQUARIUS" -->
+            <g id="texte_aquarius" transform="rotate(150)"></g>
             
+            <!-- Texte "PISCES" -->
+            <g id="texte_pisces" transform="rotate(180)"></g>
+
+            <!-- Texte "ARIES" -->
+            <g id="texte_aries" transform="rotate(210)"></g>
+
+            <!-- Texte "TAURUS" -->
+            <g id="texte_taurus" transform="rotate(240)"></g>
+
+            <!-- Texte "GEMINI" -->
+            <g id="texte_gemini" transform="rotate(270)"></g>
+
+            <!-- Texte "CANCER" -->
+            <g id="texte_cancer" transform="rotate(300)"></g>
+
+            <!-- Texte "LEO" -->
+            <g id="texte_leo" transform="rotate(330)"></g>
+
+            <!-- Texte "VIRGO" -->
+            <g id="texte_virgo" transform="rotate(360)"></g>
+
+            <!-- Texte "LIBRA" -->
+            <g id="texte_libra" transform="rotate(390)"></g>
+
+            <!-- Texte "SCORPIUS" -->
+            <g id="texte_scorpius" transform="rotate(420)"></g>
+
+            <!-- Texte "SAGITTARIUS" -->
+            <g id="texte_sagittarius" transform="rotate(450)"></g>
+
+
+            <script>
+            document.addEventListener("DOMContentLoaded", () => {
+            const svgNS = "http://www.w3.org/2000/svg";
+
+            // === CAPRICORNUS ===
+            const contenuCap = document.getElementById("texte_capricornus");
+            const r = 10.72;
+            const angleStart = 90;
+            const angleEnd = 60;
+
+            const startRad = (angleStart - 90) * Math.PI / 180;
+            const endRad = (angleEnd - 90) * Math.PI / 180;
+
+            const x1 = (r * Math.cos(startRad)).toFixed(3);
+            const y1 = (r * Math.sin(startRad)).toFixed(3);
+            const x2 = (r * Math.cos(endRad)).toFixed(3);
+            const y2 = (r * Math.sin(endRad)).toFixed(3);
+
+            const pathCap = document.createElementNS(svgNS, "path");
+            pathCap.setAttribute("id", "arc_capricornus");
+            pathCap.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathCap.setAttribute("fill", "none");
+            pathCap.setAttribute("stroke", "none");
+            pathCap.setAttribute("transform", "scale(-1,1)");
+            contenuCap.appendChild(pathCap);
+
+            const textCap = document.createElementNS(svgNS, "text");
+            textCap.setAttribute("fill", "black");
+            textCap.setAttribute("font-size", "0.6");
+            textCap.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathCap = document.createElementNS(svgNS, "textPath");
+            textPathCap.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_capricornus");
+            textPathCap.setAttribute("startOffset", "50%");
+            textPathCap.setAttribute("text-anchor", "middle");
+            textPathCap.textContent = "CAPRICORNUS";
+
+            textCap.appendChild(textPathCap);
+            contenuCap.appendChild(textCap);
+
+            // === AQUARIUS ===
+            const contenuAqua = document.getElementById("texte_aquarius");
+
+            const pathAqua = document.createElementNS(svgNS, "path");
+            pathAqua.setAttribute("id", "arc_aquarius");
+            pathAqua.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathAqua.setAttribute("fill", "none");
+            pathAqua.setAttribute("stroke", "none");
+            pathAqua.setAttribute("transform", "scale(-1,1)");
+            contenuAqua.appendChild(pathAqua);
+
+            const textAqua = document.createElementNS(svgNS, "text");
+            textAqua.setAttribute("fill", "black");
+            textAqua.setAttribute("font-size", "0.6");
+            textAqua.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathAqua = document.createElementNS(svgNS, "textPath");
+            textPathAqua.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_aquarius");
+            textPathAqua.setAttribute("startOffset", "50%");
+            textPathAqua.setAttribute("text-anchor", "middle");
+            textPathAqua.textContent = "AQUARIUS";
+
+            textAqua.appendChild(textPathAqua);
+            contenuAqua.appendChild(textAqua);
+
+            // === PISCES ===
+            const contenuPisces = document.getElementById("texte_pisces");
+
+            const pathPisces = document.createElementNS(svgNS, "path");
+            pathPisces.setAttribute("id", "arc_pisces");
+            pathPisces.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathPisces.setAttribute("fill", "none");
+            pathPisces.setAttribute("stroke", "none");
+            pathPisces.setAttribute("transform", "scale(-1,1)");
+            contenuPisces.appendChild(pathPisces);
+
+            const textPisces = document.createElementNS(svgNS, "text");
+            textPisces.setAttribute("fill", "black");
+            textPisces.setAttribute("font-size", "0.6");
+            textPisces.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathPisces = document.createElementNS(svgNS, "textPath");
+            textPathPisces.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_pisces");
+            textPathPisces.setAttribute("startOffset", "50%");
+            textPathPisces.setAttribute("text-anchor", "middle");
+            textPathPisces.textContent = "PISCES";
+
+            textPisces.appendChild(textPathPisces);
+            contenuPisces.appendChild(textPisces);
+
+            // === ARIES ===
+            const contenuAries = document.getElementById("texte_aries");
+
+            const pathAries = document.createElementNS(svgNS, "path");
+            pathAries.setAttribute("id", "arc_aries");
+            pathAries.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathAries.setAttribute("fill", "none");
+            pathAries.setAttribute("stroke", "none");
+            pathAries.setAttribute("transform", "scale(-1,1)");
+            contenuAries.appendChild(pathAries);
+
+            const textAries = document.createElementNS(svgNS, "text");
+            textAries.setAttribute("fill", "black");
+            textAries.setAttribute("font-size", "0.6");
+            textAries.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathAries = document.createElementNS(svgNS, "textPath");
+            textPathAries.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_aries");
+            textPathAries.setAttribute("startOffset", "50%");
+            textPathAries.setAttribute("text-anchor", "middle");
+            textPathAries.textContent = "ARIES";
+
+            textAries.appendChild(textPathAries);
+            contenuAries.appendChild(textAries);
+
+            // === TAURUS ===
+            const contenuTaurus = document.getElementById("texte_taurus");
+
+            const pathTaurus = document.createElementNS(svgNS, "path");
+            pathTaurus.setAttribute("id", "arc_taurus");
+            pathTaurus.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathTaurus.setAttribute("fill", "none");
+            pathTaurus.setAttribute("stroke", "none");
+            pathTaurus.setAttribute("transform", "scale(-1,1)");
+            contenuTaurus.appendChild(pathTaurus);
+
+            const textTaurus = document.createElementNS(svgNS, "text");
+            textTaurus.setAttribute("fill", "black");
+            textTaurus.setAttribute("font-size", "0.6");
+            textTaurus.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathTaurus = document.createElementNS(svgNS, "textPath");
+            textPathTaurus.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_taurus");
+            textPathTaurus.setAttribute("startOffset", "50%");
+            textPathTaurus.setAttribute("text-anchor", "middle");
+            textPathTaurus.textContent = "TAURUS";
+
+            textTaurus.appendChild(textPathTaurus);
+            contenuTaurus.appendChild(textTaurus);
+
+            // === GEMINI ===
+            const contenuGem = document.getElementById("texte_gemini");
+
+            const pathGem = document.createElementNS(svgNS, "path");
+            pathGem.setAttribute("id", "arc_gemini");
+            pathGem.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathGem.setAttribute("fill", "none");
+            pathGem.setAttribute("stroke", "none");
+            pathGem.setAttribute("transform", "scale(-1,1)");
+            contenuGem.appendChild(pathGem);
+
+            const textGem = document.createElementNS(svgNS, "text");
+            textGem.setAttribute("fill", "black");
+            textGem.setAttribute("font-size", "0.6");
+            textGem.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathGem = document.createElementNS(svgNS, "textPath");
+            textPathGem.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_gemini");
+            textPathGem.setAttribute("startOffset", "50%");
+            textPathGem.setAttribute("text-anchor", "middle");
+            textPathGem.textContent = "GEMINI";
+
+            textGem.appendChild(textPathGem);
+            contenuGem.appendChild(textGem);
+
+            // === CANCER ===
+            const contenuCan = document.getElementById("texte_cancer");
+
+            const pathCan = document.createElementNS(svgNS, "path");
+            pathCan.setAttribute("id", "arc_cancer");
+            pathCan.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathCan.setAttribute("fill", "none");
+            pathCan.setAttribute("stroke", "none");
+            pathCan.setAttribute("transform", "scale(-1,1)");
+            contenuCan.appendChild(pathCan);
+
+            const textCan = document.createElementNS(svgNS, "text");
+            textCan.setAttribute("fill", "black");
+            textCan.setAttribute("font-size", "0.6");
+            textCan.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathCan = document.createElementNS(svgNS, "textPath");
+            textPathCan.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_cancer");
+            textPathCan.setAttribute("startOffset", "50%");
+            textPathCan.setAttribute("text-anchor", "middle");
+            textPathCan.textContent = "CANCER";
+
+            textCan.appendChild(textPathCan);
+            contenuCan.appendChild(textCan);
+
+            // === LEO ===
+            const contenuLeo = document.getElementById("texte_leo");
+
+            const pathLeo = document.createElementNS(svgNS, "path");
+            pathLeo.setAttribute("id", "arc_leo");
+            pathLeo.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathLeo.setAttribute("fill", "none");
+            pathLeo.setAttribute("stroke", "none");
+            pathLeo.setAttribute("transform", "scale(-1,1)");
+            contenuLeo.appendChild(pathLeo);
+
+            const textLeo = document.createElementNS(svgNS, "text");
+            textLeo.setAttribute("fill", "black");
+            textLeo.setAttribute("font-size", "0.6");
+            textLeo.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathLeo = document.createElementNS(svgNS, "textPath");
+            textPathLeo.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_leo");
+            textPathLeo.setAttribute("startOffset", "50%");
+            textPathLeo.setAttribute("text-anchor", "middle");
+            textPathLeo.textContent = "LEO";
+
+            textLeo.appendChild(textPathLeo);
+            contenuLeo.appendChild(textLeo);
+
+            // === VIRGO ===
+            const contenuVir = document.getElementById("texte_virgo");
+
+            const pathVir = document.createElementNS(svgNS, "path");
+            pathVir.setAttribute("id", "arc_virgo");
+            pathVir.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathVir.setAttribute("fill", "none");
+            pathVir.setAttribute("stroke", "none");
+            pathVir.setAttribute("transform", "scale(-1,1)");
+            contenuVir.appendChild(pathVir);
+
+            const textVir = document.createElementNS(svgNS, "text");
+            textVir.setAttribute("fill", "black");
+            textVir.setAttribute("font-size", "0.6");
+            textVir.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathVir = document.createElementNS(svgNS, "textPath");
+            textPathVir.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_virgo");
+            textPathVir.setAttribute("startOffset", "50%");
+            textPathVir.setAttribute("text-anchor", "middle");
+            textPathVir.textContent = "VIRGO";
+
+            textVir.appendChild(textPathVir);
+            contenuVir.appendChild(textVir);
+
+            // === LIBRA ===
+            const contenuLib = document.getElementById("texte_libra");
+
+            const pathLib = document.createElementNS(svgNS, "path");
+            pathLib.setAttribute("id", "arc_libra");
+            pathLib.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathLib.setAttribute("fill", "none");
+            pathLib.setAttribute("stroke", "none");
+            pathLib.setAttribute("transform", "scale(-1,1)");
+            contenuLib.appendChild(pathLib);
+
+            const textLib = document.createElementNS(svgNS, "text");
+            textLib.setAttribute("fill", "black");
+            textLib.setAttribute("font-size", "0.6");
+            textLib.setAttribute("font-family", "century gothic, arial, calibri");
+
+            const textPathLib = document.createElementNS(svgNS, "textPath");
+            textPathLib.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_libra");
+            textPathLib.setAttribute("startOffset", "50%");
+            textPathLib.setAttribute("text-anchor", "middle");
+            textPathLib.textContent = "LIBRA";
+
+            textLib.appendChild(textPathLib);
+            contenuLib.appendChild(textLib);
+
+            // === SCORPIUS ===
+            const contenuScor = document.getElementById("texte_scorpius");
+
+            const pathScor = document.createElementNS(svgNS, "path");
+            pathScor.setAttribute("id", "arc_scorpius");
+            pathScor.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathScor.setAttribute("fill", "none");
+            pathScor.setAttribute("stroke", "none");
+            pathScor.setAttribute("transform", "scale(-1,1)");
+            contenuScor.appendChild(pathScor);
+
+            const textScor = document.createElementNS(svgNS, "text");
+            textScor.setAttribute("fill", "black");
+            textScor.setAttribute("font-size", "0.6");
+            textScor.setAttribute("font-family", "century gothic, arial, caScorri");
+
+            const textPathScor = document.createElementNS(svgNS, "textPath");
+            textPathScor.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_scorpius");
+            textPathScor.setAttribute("startOffset", "50%");
+            textPathScor.setAttribute("text-anchor", "middle");
+            textPathScor.textContent = "SCORPIUS";
+
+            textScor.appendChild(textPathScor);
+            contenuScor.appendChild(textScor);
+
+            // === SAGITTARIUS ===
+            const contenuSagit = document.getElementById("texte_sagittarius");
+
+            const pathSagit = document.createElementNS(svgNS, "path");
+            pathSagit.setAttribute("id", "arc_sagittarius");
+            pathSagit.setAttribute("d", `M ${x2} ${-y2} A ${r} ${r} 0 0 0 ${x1} ${-y1}`);
+            pathSagit.setAttribute("fill", "none");
+            pathSagit.setAttribute("stroke", "none");
+            pathSagit.setAttribute("transform", "scale(-1,1)");
+            contenuSagit.appendChild(pathSagit);
+
+            const textSagit = document.createElementNS(svgNS, "text");
+            textSagit.setAttribute("fill", "black");
+            textSagit.setAttribute("font-size", "0.6");
+            textSagit.setAttribute("font-family", "century gothic, arial, caSagitri");
+
+            const textPathSagit = document.createElementNS(svgNS, "textPath");
+            textPathSagit.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_sagittarius");
+            textPathSagit.setAttribute("startOffset", "50%");
+            textPathSagit.setAttribute("text-anchor", "middle");
+            textPathSagit.textContent = "SAGITTARIUS";
+
+            textSagit.appendChild(textPathSagit);
+            contenuSagit.appendChild(textSagit);
+
+            
+
+            });
+            </script>
+
+            
+
+
 
 
         </g>

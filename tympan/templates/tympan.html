@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -248,6 +249,15 @@
                         <!-- Montrer seulement au-dessus de l'horizon (y < centre_y) -->
                         <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
                     </mask>
+                    
+                    <mask id="masque-interieur-alm70-equateur">
+                        <rect width="600" height="600" fill="black" />
+                        {% for alm in almucantarats %}
+                            {% if alm.hauteur == 70 and alm.type != 'ligne_horizontale' %}
+                                <circle cx="300" cy="{{ centre_y - (alm.cy * facteur) }}" r="{{ alm.rayon * facteur }}" fill="white" />
+                            {% endif %}
+                        {% endfor %}
+                    </mask>
                 </defs>
                 
                 <!-- Cercle Équateur (bleu) -->
@@ -330,6 +340,9 @@
                 
                 <!-- Masque final : cacher tout en dehors du cercle violet -->
                 <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-equateur)" />
+                
+                <!-- Masque final : cacher l'intérieur de l'almucantarat 70° -->
+                <rect width="600" height="600" fill="white" mask="url(#masque-interieur-alm70-equateur)" />
                 
                 <!-- Étiquette latitude -->
                 {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
