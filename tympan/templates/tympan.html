@@ -257,6 +257,14 @@
                             {% endif %}
                         {% endfor %}
                     </mask>
+                    
+                    <mask id="masque-interieur-cancer-equateur">
+                        <rect width="600" height="600" fill="white" />
+                        <!-- Masquer l'intérieur du cercle Cancer dans la moitié inférieure -->
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="black" />
+                        <!-- Remettre la moitié supérieure en blanc -->
+                        <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
+                    </mask>
                 </defs>
                 
                 <!-- Cercle Équateur (bleu) -->
@@ -357,7 +365,37 @@
                 <!-- Ligne 6e heure (midi) -->
                 <line x1="300" y1="{{ centre_y - (fixed_radius_cancer * facteur) }}"
                       x2="300" y2="{{ centre_y + (fixed_radius_capricorne * facteur) }}"
-                      stroke="black" stroke-width="1"/>
+                      stroke="black" stroke-width="1"
+                      mask="url(#masque-interieur-cancer-equateur)"/>
+                
+                <!-- Cercles de crépuscules -->
+                {% for cercle in cercles_crepuscules %}
+                    {% if cercle.get('type') == 'ligne_horizontale' %}
+                        <line
+                            x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                            y1="{{ centre_y - (cercle.y_offset * facteur) }}"
+                            x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                            y2="{{ centre_y - (cercle.y_offset * facteur) }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° (extrapolé - droite)</title>
+                        </line>
+                    {% else %}
+                        <circle
+                            cx="{{ 300 + (cercle.cx * facteur) }}"
+                            cy="{{ centre_y - (cercle.cy * facteur) }}"
+                            r="{{ cercle.rayon * facteur }}"
+                            fill="{{ cercle.style.fill if cercle.style is defined else 'none' }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° {% if cercle.style is defined and cercle.style.stroke == 'gray' %}(calculé){% elif cercle.style is defined and cercle.style.stroke == 'red' %}(extrapolé){% endif %}</title>
+                        </circle>
+                    {% endif %}
+                {% endfor %}
                 
                 <!-- Masque final : cacher tout en dehors du cercle violet -->
                 <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-equateur)" />
