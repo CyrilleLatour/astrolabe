@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlanetQuest</title>
+
+  <!-- Manifeste PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
+
+  <!-- iOS -->
+  <link rel="apple-touch-icon" href="apple-touch-icon-180.png" sizes="180x180">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+
+  <!-- iOS full-screen -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+  <style>
+    body {
+      margin: 0;
+      background-color: white; /* fond extérieur blanc */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app-container {
+      width: min(100vw, 440px);
+      height: 100vh;
+      background-color: black;
+      position: relative;        /* nécessaire pour placer le bouton dedans */
+      border-radius: 0px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+
+    .Button1,
+    .Button2 {
+      position: absolute;        /* on positionne librement */
+      left: 50%;                 /* on part du centre horizontal */
+      transform: translateX(-50%); /* recentre horizontalement */
+      font-family: century gothic, arial, calibri;
+      color: white;
+      background-color: black;
+      font-size: 1em;
+      border: 2px solid white;
+      padding: 10px;
+      border-radius: 10px;
+      text-decoration: none;
+    }
+
+    .Button1 { top: 100px; }
+    .Button2 { top: 150px; }
+
+    .Button1:hover,
+    .Button2:hover {
+      color: black;
+      background-color: white;
+      border: 2px solid black;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app-container">
+  <a href="Orbits.html" class="Button1">Orbits of the planets</a>
+  <br>
+  <a href="Visibility.html" class="Button2">Visibility of the planets</a>
+</div>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>

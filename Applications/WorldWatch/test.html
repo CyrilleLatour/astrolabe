@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Analog Watch — Mobile Frame</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<meta content="#111111" name="theme-color"/>
+<link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root{
+      /* Layout existant */
+      --map-offset: -30px;
+      --sun-offset: -20px;
+      --diff-offset: -30px;
+      --reset-offset: 30px;
+      --mapbtn-offset: -300px;
+
+      /* Croix : couleurs orange (jour et nuit) */
+      --close-offset-x: 10px;
+      --close-offset-y: 20px;
+      --close-size: 20;
+      --close-stroke: 5;
+      --close-color-day: orange;
+      --close-color-night: orange;
+    }
+
+    html, body { height:100%; margin:0; background:#e9ecef; display:grid; place-items:center; font-family:Arial,Helvetica,sans-serif; }
+
+    .phone {
+      position:relative; width:min(390px,92vw); aspect-ratio:9/19.5; background:#f8f9fa;
+      border:12px solid #111; border-radius:34px; box-shadow:0 20px 60px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.06); overflow:hidden;
+    }
+
+    .screen { position:absolute; inset:20px 14px 20px; display:grid; grid-template-rows:auto 1fr auto; align-items:start; row-gap:0; }
+
+    /* Header */
+    .header { position:relative; height:44px; display:flex; align-items:center; justify-content:center; }
+    .city-name { font-weight:700; font-size:30px; color:blue; pointer-events:none; }
+    .tz-button {
+      position:absolute; right:15px; top:8px; font-size:12px; padding:8px 10px;
+      border:1px solid #000; background:#fff; color:#000; border-radius:8px; cursor:pointer; user-select:none; z-index:20;
+    }
+    .tz-button:hover { background:red; border-color:red; color:#fff; }
+
+    .tz-menu {
+      position: absolute;
+      top: 180px;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      max-height: 70vh;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #000;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      z-index: 2000;
+      display: none;
+    }
+
+    .tz-menu.show { display:block; }
+    .tz-menu-header { padding:8px 10px; font-size:12px; font-weight:600; background:#f1f1f1; border-bottom:1px solid #000; }
+    .tz-menu-list { max-height:320px; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+    .tz-item {
+      height:32px; line-height:32px; padding:0 10px; font-size:13px; cursor:pointer; white-space:nowrap;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .tz-item:hover,.tz-item:focus { background:#e9f2ff; outline:none; }
+    .tz-item.active { background:#d7ecff; font-weight:600; }
+    .tz-cc { font-size:12px; color:#333; opacity:.85; flex:0 0 auto; }
+
+    /* Watch */
+    .center-pane { position:relative; display:grid; align-content:start; justify-items:center; padding-top:25px; }
+    .watch { position:relative; width:300px; height:300px; border:8px solid #000; border-radius:50%; top:-17px; background:#fff; overflow:hidden; }
+    .hand { position:absolute; bottom:50%; left:50%; transform:translateX(-50%) rotate(0deg); transform-origin:bottom center; background:#000; }
+    .hand.hour{ width:6px; height:70px; z-index:10; } .hand.minute{ width:4px; height:100px; z-index:9; }
+    .hand.second{ width:2px; height:120px; z-index:8; background:#e00; }
+    .center-dot{ position:absolute; width:14px; height:14px; background:#000; border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); z-index:20; }
+    .dot{ position:absolute; width:10px; height:10px; background:#000; border-radius:50%; }
+    .min-dot{ position:absolute; width:5px; height:5px; background:#000; border-radius:50%; opacity:.9; }
+    .mark-wrap{ position:absolute; left:50%; top:50%; transform-origin:center center; }
+    .main-mark{
+      position:absolute; left:50%; top:50%; width:6px; height:30px; background:#000; border-radius:3px;
+      transform-origin:50% 100%; transform:translate(-50%, var(--edge-translate,-150px));
+    }
+    .digital{ position:absolute; left:50%; top:58%; transform:translateX(-50%); font:14px/1 Arial,sans-serif; color:#111; z-index:20; }
+
+    .box{
+      display:inline-flex; align-items:center; justify-content:center; background:#fff; color:#000; border:1px solid #000; border-radius:4px;
+      font:12px/1 Arial,sans-serif; white-space:nowrap; z-index:5;
+    }
+    .day-box{ position:absolute; top:50%; left:85%; transform:translate(-50%,-50%); width:20px; height:20px; }
+    .week-box{ position:absolute; top:50%; left:75%; transform:translate(-50%,-50%); text-transform:lowercase; width:24px; height:20px; }
+    .month-cluster{ position:absolute; top:50%; left:25%; transform:translate(-50%, -50%); display:inline-flex; align-items:center; gap:6px; z-index:5; }
+    .month-box{ width:30px; height:20px; } .week-label{ font:11px/1 Arial,sans-serif; color:#000; user-select:none; } .weeknum-box{ width:20px; height:20px; }
+    .hour-num{ position:absolute; transform:translate(-50%,-50%); font-family:'Comic Neue','Comic Sans MS','Comic Sans',cursive; font-weight:700; color:blue; line-height:1; user-select:none; pointer-events:none; }
+
+    /* Map */
+    .footer { display:block; }
+    .map-container{
+      position:relative; z-index:1; width:100%; aspect-ratio: 2 / 1; background: transparent; border:1px solid #000; top: var(--map-offset); overflow:hidden;
+    }
+    .map-container svg{ width:100%; height:100%; display:block; }
+
+    /* Jour : continents blancs, frontières noires */
+    .land{ fill:#ffffff; } 
+    .boundary{ fill:none; stroke:#000; stroke-width:.6px; }
+    .graticule{ fill:none; stroke:#ccc; stroke-opacity:.3; stroke-width:.5px; }
+    .sphere{ fill:#add8e6; stroke:#333; }
+
+    /* Marqueur de ville */
+    .city-marker{ stroke:white; stroke-width:1px; opacity:1 }
+    @keyframes cityBlink { 0%{opacity:0;} 50%{opacity:1;} 100%{opacity:0;} }
+    .city-marker.pulse { animation: cityBlink 1s ease-in-out infinite; }
+
+    /* Time difference row */
+    .diff-row{ position:relative; top: var(--diff-offset); text-align:center; font:14px/1.4 Arial,Helvetica,sans-serif; }
+    .diff-button{
+      margin-left:8px; padding:6px 10px; font-size:12px; border:1px solid #000; background:#fff; color:#000; border-radius:8px; cursor:pointer;
+    }
+    .diff-button:hover{ background:#f3f3f3; }
+    .diff-output{ margin-left:6px; font-weight:700; }
+
+    .diff-menu {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: -40px;
+      width: 240px;
+      max-height: 340px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      display: none;
+      background: #fff;
+      border: 1px solid #000;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.15);
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .diff-menu.show { display:block; }
+    .diff-menu-header {
+      padding:8px 10px;
+      font-size:12px;
+      font-weight:600;
+      background:#f1f1f1;
+      border-bottom:1px solid #000;
+    }
+    .diff-list {
+      max-height: calc(60vh - 40px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Reset sous le bouton diff */
+    .reset-button {
+      position: absolute; top: var(--reset-offset); left: 50%; transform: translateX(-50%);
+      display:block; margin:8px auto 0; font-size:12px; padding:6px 10px; border:1px solid #000; background:#fff; color:#000; border-radius:8px; cursor:pointer; user-select:none;
+    }
+    .reset-button:hover { background:#f3f3f3; }
+
+    /* Compare */
+    .compare-marker{ }
+    .compare-line{ fill:none; stroke-dasharray:6,4; pointer-events:none; }
+
+    .map-button{
+      position: absolute; left: 50%; transform: translate(-50%, var(--mapbtn-offset)); z-index: 20;
+      margin: 0; padding: 8px 12px; font-size: 12px; border: 1px solid #000; background: #fff; color: #000; border-radius: 8px; cursor: pointer; user-select: none;
+    }
+    .map-button:hover{ background:#f3f3f3; }
+
+    /* Close 'X' (zone cliquable), croix SVG colorée par masques */
+    .close-map-btn {
+      position: absolute; bottom: var(--close-offset-y); left: var(--close-offset-x);
+      width: calc(var(--close-size) * 1px + 12px);
+      height: calc(var(--close-size) * 1px + 12px);
+      font-size: 0; font-weight: bold; line-height: 1; border: none; background: transparent; cursor: pointer;
+      z-index: 2000; user-select: none; display:none; padding:0;
+      color: transparent; text-shadow: none;
+    }
+
+    .diff-item {
+      height:32px; line-height:32px; padding:0 10px; font-size:13px; cursor:pointer; white-space:nowrap;
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .diff-item:hover,.diff-item:focus { background:#e9f2ff; outline:none; }
+    .diff-cc { font-size:12px; color:#333; opacity:.85; flex:0 0 auto; }
+
+    /* Capitals highlight */
+    .tz-item.is-capital, .diff-item.is-capital { color: red; font-weight: 700; }
+
+    #diffOutput { font-weight: bold; }
+
+    /* Style pour le bouton "timezone" */
+    .timezone-button {
+      position: absolute;
+      top: 560px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 15px;
+      font-size: 14px;
+      border: 1px solid #000;
+      background: #fff;
+      color: #000;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    /* Style pour la carte */
+    #mapArea {
+      position: relative;
+      z-index: 20;
+    }
+
+    /* Zones horaires réelles */
+    .timezone-zone {
+      fill-opacity: 0.6;
+      stroke: #333;
+      stroke-width: 0.5px;
+      pointer-events: none;
+    }
+
+    .timezone-zones {
+      display: none;
+    }
+
+    .show-timezones .timezone-zones {
+      display: block;
+    }
+
+    /* Hide 'time difference' and 'reset' when timezone map is open */
+    #mapArea.hide-diff #diffRow { display: none !important; }
+</style>
+</head>
+<body>
+
+<h1 style="color:red">VERSION TEST</h1>
+
+<div class="phone" id="phone">
+<div class="screen">
+<!-- Header -->
+<div class="header">
+<div class="city-name" id="city">Geneva</div>
+<button aria-expanded="false" aria-haspopup="listbox" class="tz-button" id="tzBtn" type="button">town</button>
+<div aria-label="Choose a town" class="tz-menu" id="tzMenu" role="listbox">
+<div class="tz-menu-header">
+<input id="tzSearch" placeholder="Search a town…" style="width:100%; box-sizing:border-box; font-size:12px; padding:6px 8px; border:1px solid #000; border-radius:6px;" type="text"/>
+</div>
+<div class="tz-menu-list" id="tzList"></div>
+</div>
+</div>
+<!-- Watch area -->
+<div class="center-pane">
+<div class="watch" id="watch">
+<div class="hand hour" id="hour"></div>
+<div class="hand minute" id="minute"></div>
+<div class="hand second" id="second"></div>
+<div class="center-dot"></div>
+<div class="digital" id="digital"></div>
+<div class="week-box box" id="week"></div>
+<div class="day-box box" id="day"></div>
+<div class="month-cluster" id="monthCluster">
+<div class="month-box box" id="month"></div><div class="week-label">week</div><div class="weeknum-box box" id="weeknum"></div>
+</div>
+</div>
+</div>
+<!-- Map row -->
+<div class="footer">
+<button class="map-button" id="showMapBtn" type="button">map</button>
+<button class="map-button timezone-button" id="timezoneBtn" type="button">timezone</button>
+<div id="mapArea" style="display:none">
+<div class="map-container" style="position:relative; left:-5px">
+<svg id="map" preserveaspectratio="xMidYMid meet" viewbox="0 0 1200 600"></svg>
+<!-- Bouton HTML (texte invisible, croix SVG visible via masques) -->
+<button aria-label="Close map" class="close-map-btn" id="closeMapBtn">×</button>
+<svg class="tz-overlay" id="tzOverlay" preserveAspectRatio="none" style="position:absolute; inset:0; display:none; pointer-events:none; z-index:25;" viewBox="0 0 1200 600"></svg></div>
+<br/><br/>
+<!-- Time difference row -->
+<div class="diff-row" id="diffRow">
+<button class="diff-button" id="diffBtn">time difference</button>
+<span id="diffOutput"></span>
+<button class="reset-button" id="resetBtn">reset</button>
+<div aria-label="Choose a city for time difference" class="diff-menu" id="diffMenu" role="listbox">
+<div class="diff-menu-header">
+<input id="diffSearch" placeholder="Search a city…" style="width:100%; box-sizing:border-box; font-size:12px; padding:6px 8px; border:1px solid #000; border-radius:6px;" type="text"/>
+</div>
+<div class="diff-list" id="diffList"></div>
+</div>
+</div>
+</div> <!-- /#mapArea -->
+</div> <!-- /.footer -->
+</div> <!-- /screen -->
+</div> <!-- /phone -->
+<!-- À SUIVRE dans la partie 2 -->
+
+<!-- Core JS (sans capitales, Geneva uniquement) -->
+<script>
+    /* ===================== State de base (Geneva uniquement) ===================== */
+    const CITY_LIST = [{ name: 'Geneva', cc: 'CH' }];
+    const TIMEZONE_MAP = { 'Geneva': 'Europe/Zurich' };
+    const CITY_COORDS = { 'Geneva': [6.15, 46.2] };
+    const __CAPITAL_NAME_SET = new Set(); // Geneva n'est PAS capitale (on ne la met pas)
+    let SORTED = CITY_LIST.slice();
+    let currentTZ = 'Europe/Zurich';
+
+    const $ = (id) => document.getElementById(id);
+    let funTimerId=null,isAnimating=false,lastAngles={h:0,m:0,s:0}, prevSecond=null;
+
+    function stripAccents(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+    function mod360(x){ return ((x%360)+360)%360; }
+
+    function getPartsForTZ(tz){
+      const now=new Date();
+      const t=new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(now);
+      const H=parseInt(t.find(p=>p.type==='hour').value,10), M=parseInt(t.find(p=>p.type==='minute').value,10), S=parseInt(t.find(p=>p.type==='second').value,10);
+      const d=new Intl.DateTimeFormat('en-GB',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',weekday:'short'}).formatToParts(now);
+      const Y=parseInt(d.find(p=>p.type==='year').value,10), Mo=parseInt(d.find(p=>p.type==='month').value,10), D=parseInt(d.find(p=>p.type==='day').value,10);
+      let wd=d.find(p=>p.type==='weekday').value.toLowerCase().slice(0,3);
+      return {H,M,S,Y,Mo,D,wd};
+    }
+    function isoWeekOf(y,m,d){
+      const date=new Date(Date.UTC(y,m-1,d)); const dayNum=(date.getUTCDay()+6)%7+1;
+      date.setUTCDate(date.getUTCDate()+4-dayNum); const yearStart=new Date(Date.UTC(date.getUTCFullYear(),0,1));
+      return Math.ceil((((date-yearStart)/86400000)+1)/7);
+    }
+
+    function saveTZState(city,tz){ try{ localStorage.setItem('tzState',JSON.stringify({city,tz})); }catch{} }
+    function loadTZState(){ try{ return JSON.parse(localStorage.getItem('tzState')||'null'); }catch{ return null; } }
+
+    function updateClockTZ(){
+      const {H,M,S}=getPartsForTZ(currentTZ); const sDeg=S*6;
+      $('second').style.transform=`translateX(-50%) rotate(${sDeg}deg)`; lastAngles.s=sDeg;
+      $('digital').textContent=`${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}:${String(S).padStart(2,'0')}`;
+      if(isAnimating) return;
+      const mDeg=M*6+S*0.1, hDeg=(H%12)*30+M*0.5;
+      $('minute').style.transform=`translateX(-50%) rotate(${mDeg}deg)`;
+      $('hour').style.transform=`translateX(-50%) rotate(${hDeg}deg)`;
+      lastAngles.m=mDeg; lastAngles.h=hDeg;
+    }
+    function updateCalendarTZ(){
+      const months=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const {Y,Mo,D,wd}=getPartsForTZ(currentTZ);
+      $('week').textContent=wd; $('day').textContent=String(D);
+      $('month').textContent=months[Mo-1]; $('weeknum').textContent=String(isoWeekOf(Y,Mo,D));
+    }
+
+    function pulseMarker(){
+      const el = document.querySelector('.city-marker');
+      if (!el) return;
+      if (window.__isAnimatingMarker) { el.classList.remove('pulse'); return; }
+      if (!el.classList.contains('pulse')) el.classList.add('pulse');
+    }
+
+    function startFunAnimation(){
+      const DURATION=1200, EASE='cubic-bezier(.25,.9,.3,1)', LEAD_MS=120;
+      const {H,M,S}=getPartsForTZ(currentTZ);
+      const targetMinute=M*6+S*0.1, targetHour=(H%12)*30+M*0.5;
+      const hourEl=$('hour'), minuteEl=$('minute');
+      hourEl.style.transition='none'; minuteEl.style.transition='none';
+      hourEl.style.transform=`translateX(-50%) rotate(${lastAngles.h}deg)`; minuteEl.style.transform=`translateX(-50%) rotate(${lastAngles.m}deg)`;
+      const deltaHcw=mod360(targetHour-lastAngles.h), endH=lastAngles.h+360+deltaHcw;
+      const deltaMccw=-mod360(lastAngles.m-targetMinute), endM=lastAngles.m-360+deltaMccw;
+      requestAnimationFrame(()=>{
+        isAnimating=true;
+        setTimeout(()=>pulseMarker(true), Math.max(0, DURATION - LEAD_MS));
+        hourEl.style.transition=`transform ${DURATION}ms ${EASE}`;
+        minuteEl.style.transition=`transform ${DURATION}ms ${EASE}`;
+        hourEl.style.transform=`translateX(-50%) rotate(${endH}deg)`;
+        minuteEl.style.transform=`translateX(-50%) rotate(${endM}deg)`;
+        setTimeout(()=>{
+          hourEl.style.transition='none'; minuteEl.style.transition='none';
+          const hFinal=mod360(targetHour), mFinal=mod360(targetMinute);
+          hourEl.style.transform=`translateX(-50%) rotate(${hFinal}deg)`; minuteEl.style.transform=`translateX(-50%) rotate(${mFinal}deg)`;
+          lastAngles.h=hFinal; lastAngles.m=mFinal; isAnimating=false;
+        }, DURATION+30);
+      });
+    }
+    function queueFunAnimation(d=500){ clearTimeout(funTimerId); funTimerId=setTimeout(startFunAnimation,d); }
+
+    function layoutWatch(){
+      const phone=$('phone'), watch=$('watch');
+      const screen=phone.querySelector('.screen'), header=phone.querySelector('.header'), footer=phone.querySelector('.footer');
+      const sr=screen.getBoundingClientRect(), hr=header.getBoundingClientRect(), fr=footer.getBoundingClientRect();
+      const verticalPadding=12, availableW=sr.width-8, availableH=sr.height-hr.height-fr.height-verticalPadding*2;
+      const size=Math.floor(Math.min(availableW,availableH)); watch.style.width=size+'px'; watch.style.height=size+'px';
+      drawMarks(size); drawHourNumbers(size);
+    }
+    function drawMarks(size){
+      const watch=$('watch'); watch.querySelectorAll('.dot,.min-dot,.mark-wrap').forEach(n=>n.remove());
+      const CENTER=size/2, RADIUS_MARKS=size*.45, RADIUS_EDGE=size/2;
+      watch.style.setProperty('--edge-translate',(-RADIUS_EDGE)+'px');
+      for(let i=0;i<12;i++){
+        const deg=i*30;
+        if(i===0||i===3||i===6||i===9){
+          const w=document.createElement('div'); w.className='mark-wrap'; w.style.transform=`translate(-50%,-50%) rotate(${deg}deg)`;
+          const m=document.createElement('div'); m.className='main-mark'; w.appendChild(m); watch.appendChild(w);
+        } else {
+          const d=document.createElement('div'); d.className='dot';
+          const rad=(deg-90)*Math.PI/180;
+          const x=CENTER+RADIUS_MARKS*Math.cos(rad)-5, y=CENTER+RADIUS_MARKS*Math.sin(rad)-5;
+          d.style.left=`${x}px`; d.style.top=`${y}px`; watch.appendChild(d);
+        }
+      }
+      for(let m=0;m<60;m++){ if(m%5===0) continue;
+        const deg=m*6, rad=(deg-90)*Math.PI/180;
+        const md=document.createElement('div'); md.className='min-dot';
+        const x=CENTER+RADIUS_MARKS*Math.cos(rad)-2.5, y=CENTER+RADIUS_MARKS*Math.sin(rad)-2.5;
+        md.style.left=`${x}px`; md.style.top=`${y}px`; watch.appendChild(md);
+      }
+    }
+    function drawHourNumbers(size){
+      const watch=$('watch'); watch.querySelectorAll('.hour-num').forEach(n=>n.remove());
+      const CENTER=size/2, RADIUS_NUM=size*.36, fontPx=Math.max(12,Math.round(size*.08));
+      for(let h=1;h<=12;h++){ if(h===3||h===9) continue;
+        const deg=h*30, rad=(deg-90)*Math.PI/180, x=CENTER+RADIUS_NUM*Math.cos(rad), y=CENTER+RADIUS_NUM*Math.sin(rad);
+        const el=document.createElement('div'); el.className='hour-num'; el.textContent=(h===12)?'12':String(h);
+        el.style.left=`${x}px`; el.style.top=`${y}px`; el.style.fontSize=`${fontPx}px`; watch.appendChild(el);
+      }
+    }
+
+    /* Menus (Geneva uniquement) */
+    const tzBtn=$('tzBtn'), tzMenu=$('tzMenu'), tzList=$('tzList'), tzSearch=$('tzSearch'), cityEl=$('city');
+    function populateTzList(filterText=""){
+      tzList.innerHTML="";
+      const f=filterText.trim().toLowerCase();
+      const filtered=SORTED.filter(({name})=>name.toLowerCase().includes(f));
+      filtered.forEach(({name,cc})=>{
+        const li=document.createElement('div'); li.className='tz-item'; li.setAttribute('role','option'); li.setAttribute('tabindex','0');
+        if(__CAPITAL_NAME_SET.has(name)) li.classList.add("is-capital"); /* (inutile ici) */
+        const label=document.createElement('span'); label.textContent=name;
+        const ccSpan=document.createElement('span'); ccSpan.className='tz-cc'; ccSpan.textContent=`(${cc})`;
+        li.appendChild(label); li.appendChild(ccSpan);
+        li.addEventListener('click', ()=>{
+          window.__skipNextCityMutation = true;
+          cityEl.textContent=name; currentTZ=TIMEZONE_MAP[name]||"Europe/Zurich";
+          saveTZState(name,currentTZ); updateCalendarTZ(); updateClockTZ();
+          if(window.resetDiff) window.resetDiff();
+          tzMenu.classList.remove('show'); tzBtn.setAttribute('aria-expanded','false');
+          isAnimating=true; queueFunAnimation(500);
+          if (window.animateMarkerTo) setTimeout(()=>window.animateMarkerTo(name, 1200), 500);
+        });
+        li.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); li.click(); } });
+        tzList.appendChild(li);
+      });
+      const items=[...tzList.querySelectorAll('.tz-item')];
+      for(const it of items){ if(it.firstChild && TIMEZONE_MAP[it.firstChild.textContent]===currentTZ){ it.classList.add('active'); break; } }
+    }
+    function attachSearchHandler(){ if(!tzSearch) return; tzSearch.value=""; tzSearch.addEventListener('input',()=>populateTzList(tzSearch.value)); setTimeout(()=>tzSearch.focus(),0); }
+    function toggleTzMenu(){ const isOpen=tzMenu.classList.toggle('show'); tzBtn.setAttribute('aria-expanded',String(isOpen)); if(isOpen){ populateTzList(); attachSearchHandler(); } }
+    tzBtn.addEventListener('click',e=>{ e.stopPropagation(); toggleTzMenu(); });
+    document.addEventListener('click',e=>{ if(tzMenu.classList.contains('show')){ const inside=tzMenu.contains(e.target)||tzBtn.contains(e.target); if(!inside){ tzMenu.classList.remove('show'); tzBtn.setAttribute('aria-expanded','false'); } }});
+    document.addEventListener('keydown',e=>{
+      if(!tzMenu.classList.contains('show')) return; const items=[...tzList.querySelectorAll('.tz-item')]; if(!items.length) return;
+      const active=document.activeElement; let idx=items.indexOf(active);
+      if(e.key==='ArrowDown'){ e.preventDefault(); (items[Math.min(idx+1,items.length-1)]||items[0]).focus(); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); (items[Math.max(idx-1,0)]||items[0]).focus(); }
+    });
+
+    /* Time difference (liste réduite) */
+    const diffBtn = $('diffBtn'), diffMenu = $('diffMenu'), diffList = $('diffList'), diffSearch = $('diffSearch'), diffOutput = $('diffOutput');
+    let diffSelection = null;
+    function getTZOffsetMinutes(tz){
+      const now = new Date(); const tzDate = new Date(now.toLocaleString('en-US', { timeZone: tz })); const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+      return Math.round((tzDate - utcDate) / 60000);
+    }
+    function formatOffset(mins){ const sign = mins >= 0 ? '+' : '-'; const a = Math.abs(mins); const h = Math.floor(a/60); const m = a % 60; return m===0 ? `${sign}${h}` : `${sign}${h}:${String(m).padStart(2,'0')}`; }
+    function computeDiffLabel(targetTZ){ const cur = getTZOffsetMinutes(currentTZ); const tgt = getTZOffsetMinutes(targetTZ); return formatOffset(tgt - cur); }
+    function populateDiffList(filterText=""){
+      diffList.innerHTML=""; const f=filterText.trim().toLowerCase();
+      const filtered=SORTED.filter(({name})=>name.toLowerCase().includes(f));
+      filtered.forEach(({name,cc})=>{
+        const li=document.createElement('div'); li.className='diff-item'; li.setAttribute('role','option'); li.setAttribute('tabindex','0');
+        if(__CAPITAL_NAME_SET.has(name)) li.classList.add("is-capital");
+        const label=document.createElement('span'); label.textContent=name; const ccSpan=document.createElement('span'); ccSpan.className='diff-cc'; ccSpan.textContent=`(${cc})`;
+        li.appendChild(label); li.appendChild(ccSpan);
+        li.addEventListener('click', ()=>{
+          const tz = TIMEZONE_MAP[name] || "Europe/Zurich";
+          diffSelection = { name, tz };
+          diffMenu.classList.remove('show'); diffBtn.style.display='none';
+          diffOutput.textContent = ` ${name}: ${computeDiffLabel(tz)}`;
+          diffBtn.setAttribute('aria-expanded','false');
+          if (window.updateCompare) window.updateCompare(name);
+        });
+        li.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); li.click(); } });
+        diffList.appendChild(li);
+      });
+    }
+    function attachDiffSearch(){ if(!diffSearch) return; diffSearch.value=""; diffSearch.addEventListener('input',()=>populateDiffList(diffSearch.value)); setTimeout(()=>diffSearch.focus(),0); }
+    function toggleDiffMenu(){ const isOpen=diffMenu.classList.toggle('show'); diffBtn.setAttribute('aria-expanded',String(isOpen)); if(isOpen){ populateDiffList(); attachDiffSearch(); } }
+    diffBtn.addEventListener('click', (e)=>{ e.stopPropagation(); toggleDiffMenu(); });
+    document.addEventListener('click', (e)=>{ if(diffMenu.classList.contains('show')){ const inside = diffMenu.contains(e.target) || diffBtn.contains(e.target); if(!inside){ diffMenu.classList.remove('show'); diffBtn.setAttribute('aria-expanded','false'); } } });
+    function resetDiff(){
+      diffSelection = null; diffOutput.textContent = ''; diffBtn.style.display = 'inline-block';
+      diffMenu.classList.remove('show'); diffBtn.setAttribute('aria-expanded','false');
+      if (window.updateCompare) window.updateCompare(null);
+    }
+    window.resetDiff = resetDiff;
+    setInterval(()=>{ if(diffSelection){ diffOutput.textContent = ` ${diffSelection.name}: ${computeDiffLabel(diffSelection.tz)}`; } }, 60*1000);
+
+    /* Init TZ */
+    (function initTZ(){
+      const saved=loadTZState();
+      if(saved && saved.tz){
+        currentTZ=saved.tz; const enCity = saved.city || 'Geneva'; $('city').textContent = enCity; saveTZState(enCity,currentTZ);
+      } else {
+        $('city').textContent='Geneva'; currentTZ='Europe/Zurich'; saveTZState('Geneva',currentTZ);
+      }
+    })();
+
+    window.addEventListener('resize',layoutWatch);
+    layoutWatch();
+
+    /* Tick aligné */
+    (function tick(){
+      updateClockTZ(); updateCalendarTZ();
+      const { S } = getPartsForTZ(currentTZ);
+      if (prevSecond === null){ prevSecond=S; pulseMarker(); }
+      else if (S !== prevSecond){ prevSecond=S; pulseMarker(); }
+      const delay = 1000 - (Date.now() % 1000) + 2; setTimeout(tick, delay);
+    })();
+  </script>
+
+<!-- D3 + TopoJSON -->
+<script src="https://unpkg.com/d3@7"></script>
+<script src="https://unpkg.com/topojson-client@3"></script>
+<script>
+    (async function(){
+      const svg=d3.select("#map"); if(svg.empty()) return;
+      const width=1200, height=600;
+
+      const projection=d3.geoEquirectangular().rotate([-10,0]).fitExtent([[0,0],[width,height]],{type:"Sphere"});
+      const path=d3.geoPath(projection), graticule=d3.geoGraticule10(), g=svg.append("g");
+
+      let landGeom=null, bordersMesh=null;
+
+      // Fond de carte simple
+      g.append("path").attr("class","sphere").attr("d",path({type:"Sphere"}));
+      g.append("path").attr("class","graticule").attr("d",path(graticule));
+
+      try{
+        const world=await fetch("https://unpkg.com/world-atlas@2/countries-50m.json").then(r=>r.json());
+        const countries=topojson.feature(world, world.objects.countries);
+        const borders=topojson.mesh(world, world.objects.countries, (a,b)=>a!==b);
+        const land = topojson.feature(world, world.objects.land);
+
+        landGeom = land;
+        bordersMesh = borders;
+
+        // Continents blancs + frontières noires
+        g.selectAll("path.land").data(countries.features).join("path").attr("class","land").attr("d",path);
+        const boundary = g.append("path").attr("class","boundary").attr("d",path(borders));
+
+        /* === ZONES HORAIRES RÉELLES === */
+        const timezoneGroup = g.append("g").attr("class", "timezone-zones");
+        // Expose timezone group and hide by default
+        try { window.__timezoneGroup = timezoneGroup; } catch(e) {}
+        timezoneGroup.attr("display","none");
+        
+        // Counter overlay (top-left inside the SVG)
+        const tzCounter = g.append("text")
+          .attr("id","tzCounter")
+          .attr("x", 8).attr("y", 18)
+          .attr("font-size","12px")
+          .attr("fill","#000")
+          .style("display","none")
+          .text("");
+        try { window.__tzCounter = tzCounter; } catch(e) {}
+        
+        try {
+          // Chargement des zones horaires PRÉCISES depuis treyerl/timezones (850KB)
+          console.log("Chargement des zones horaires...");
+          const tzResponse = await fetch('https://raw.githubusercontent.com/treyerl/timezones/master/timezones.geojson');
+          
+          if (!tzResponse.ok) {
+            throw new Error(`HTTP error! status: ${tzResponse.status}`);
+          }
+          
+          const timezoneData = await tzResponse.json();
+          console.log("Zones horaires chargées:", timezoneData.features?.length || 0);
+          
+          // Palette de couleurs étendue pour les zones horaires
+          const colorScale = d3.scaleOrdinal()
+            .range(['#ff9999', '#99ccff', '#99ff99', '#ffcc99', '#cc99ff', '#ffff99', 
+                    '#ff99cc', '#ccffcc', '#ffccff', '#ccccff', '#ffffcc', '#ffcccc',
+                    '#ccff99', '#99ffcc', '#ff9966', '#cc99cc', '#99cccc', '#cccccc',
+                    '#ffaaaa', '#aaccff', '#aaffaa', '#ffddaa', '#dd99ff', '#ffffaa',
+                    '#ffaadd', '#ddffdd', '#ffddff', '#ddddff', '#ffffdd', '#ffdddd']);
+          
+          // Ajouter chaque zone horaire
+          let __tzCount = 0;
+          if (timezoneData.features) {
+            timezoneData.features.forEach((feature, i) => {
+              const tzid = feature.properties?.TZID || feature.properties?.tzid || feature.properties?.timezone || `Zone_${i}`;
+              if (!tzid) return;
+              
+              timezoneGroup.append("path")
+                .datum(feature)
+                .attr("class", "timezone-zone")
+                .attr("d", path)
+                .attr("fill", colorScale(tzid))
+                .attr("stroke", "#333")
+                .attr("stroke-width", 0.5)
+                .attr("fill-opacity", 0.6)
+                .attr("data-tzid", tzid)
+                .append("title")
+                .text(tzid);
+              __tzCount++;
+            });
+          }
+          
+          console.log("Zones horaires ajoutées:", __tzCount);
+          try {
+            if (window.__tzCounter) {
+              window.__tzCounter.text(`timezones: ${__tzCount}`);
+            }
+          } catch(e) {}
+          
+        } catch (error) {
+          console.warn("Impossible de charger les zones horaires depuis treyerl/timezones:", error);
+          
+          // Fallback: créer des zones horaires approximatives basées sur la longitude
+          console.log("Création de zones horaires approximatives...");
+          const approximateTimezones = [];
+          for (let offset = -12; offset <= 12; offset++) {
+            const westBound = offset * 15 - 7.5;
+            const eastBound = offset * 15 + 7.5;
+            
+            // Créer une bande verticale
+            const band = {
+              type: "Feature",
+              properties: { tzid: `UTC${offset >= 0 ? '+' : ''}${offset}` },
+              geometry: {
+                type: "Polygon",
+                coordinates: [[
+                  [westBound, -85], [eastBound, -85], 
+                  [eastBound, 85], [westBound, 85], 
+                  [westBound, -85]
+                ]]
+              }
+            };
+            approximateTimezones.push(band);
+          }
+          
+          const colorScale = d3.scaleOrdinal()
+            .range(['#ff9999', '#99ccff', '#99ff99', '#ffcc99', '#cc99ff', '#ffff99', 
+                    '#ff99cc', '#ccffcc', '#ffccff', '#ccccff', '#ffffcc', '#ffcccc',
+                    '#ccff99', '#99ffcc', '#ff9966', '#cc99cc', '#99cccc', '#cccccc',
+                    '#ffaaaa', '#aaccff', '#aaffaa', '#ffddaa', '#dd99ff', '#ffffaa']);
+          
+          let __tzCount = 0;
+          approximateTimezones.forEach((feature, i) => {
+            const tzid = feature.properties.tzid;
+            timezoneGroup.append("path")
+              .datum(feature)
+              .attr("class", "timezone-zone")
+              .attr("d", path)
+              .attr("fill", colorScale(tzid))
+              .attr("stroke", "#333")
+              .attr("stroke-width", 0.5)
+              .attr("fill-opacity", 0.4)
+              .attr("data-tzid", tzid)
+              .append("title")
+              .text(tzid);
+            __tzCount++;
+          });
+          
+          console.log("Zones approximatives créées:", __tzCount);
+          try {
+            if (window.__tzCounter) {
+              window.__tzCounter.text(`approx. timezones: ${__tzCount}`);
+            }
+          } catch(e) {}
+        }
+
+        /* === Marqueurs de villes === */
+        const marker = g.append("circle").attr("class","city-marker").attr("r",6).attr("opacity",1).attr("fill","red");
+        const cmpMarker = g.append("circle").attr("class","compare-marker").attr("r",6).attr("opacity",0).attr("fill","blue");
+        const lineCompare = g.append("path").attr("class","compare-line").attr("stroke","red").attr("stroke-width",3).attr("stroke-dasharray","6,4").attr("fill","none");
+        let currentCityLL=null, compareCityLL=null;
+
+        /* API marker */
+        function updateCityMarker(cityName){
+          const ll=CITY_COORDS[cityName]; 
+          if(!ll) { currentCityLL=[6.15,46.2]; } else { currentCityLL=ll; }
+          const [x,y]=projection(currentCityLL);
+          marker.attr("cx",x).attr("cy",y).attr("opacity",1);
+          if (!window.__isAnimatingMarker) setTimeout(()=>{ if(window.pulseMarker) window.pulseMarker(true); }, 20);
+        }
+        window.updateCityMarker = updateCityMarker;
+
+        window.__isAnimatingMarker = false;
+        window.animateMarkerTo = function(cityName, duration = 1200){
+          const target = CITY_COORDS[cityName];
+          if (!target){ updateCityMarker(cityName); return; }
+          if (!currentCityLL){ updateCityMarker(cityName); return; }
+          window.__isAnimatingMarker = true;
+          const _cityDot = document.querySelector('.city-marker'); if (_cityDot) _cityDot.classList.remove('pulse');
+          const interp = d3.geoInterpolate(currentCityLL, target);
+          const t0 = performance.now();
+          function step(now){
+            const u = Math.min(1, (now - t0) / duration);
+            const ll = interp(u); const [x, y] = projection(ll);
+            marker.attr("cx", x).attr("cy", y).attr("opacity", 1);
+            if (u < 1){ requestAnimationFrame(step); }
+            else{
+              window.__isAnimatingMarker = false;
+              currentCityLL = target.slice();
+              if (window.pulseMarker) window.pulseMarker(true);
+            }
+          }
+          requestAnimationFrame(step);
+        };
+
+        function placeInitialMarker(){
+          const currentCity=document.getElementById('city').textContent.trim();
+          updateCityMarker(currentCity);
+        }
+
+        /* Compare (optionnel) */
+        function updateCompareGraphics(){
+          if(!currentCityLL || !compareCityLL){
+            cmpMarker.attr("opacity",0);
+            lineCompare.attr("d", null);
+            return;
+          }
+          const [x2,y2] = projection(compareCityLL);
+          cmpMarker.attr("cx",x2).attr("cy",y2).attr("opacity",1);
+          const interp = d3.geoInterpolate(currentCityLL, compareCityLL);
+          const coords = d3.range(0, 1.0001, 0.02).map(t => interp(t));
+          const lineGeo = { type:"LineString", coordinates: coords };
+          lineCompare.attr("d", path(lineGeo));
+        }
+        window.updateCompare = function(cityName){
+          if (!cityName){ compareCityLL = null; updateCompareGraphics(); return; }
+          const ll = CITY_COORDS[cityName]; compareCityLL = ll ? ll.slice() : null;
+          updateCompareGraphics();
+        };
+
+        /* Croix de fermeture simple */
+        const crossGroup = g.append('g').attr('class','close-cross').style('pointer-events','none');
+        function drawCloseCross(){
+          const svgNode = document.getElementById('map');
+          const rect = svgNode.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return;
+          const rootStyle = getComputedStyle(document.documentElement);
+          const offX = parseFloat(rootStyle.getPropertyValue('--close-offset-x')) || 5;
+          const offY = parseFloat(rootStyle.getPropertyValue('--close-offset-y')) || 15;
+          const sizePx   = parseFloat(rootStyle.getPropertyValue('--close-size'))   || 28;
+          const strokePx = parseFloat(rootStyle.getPropertyValue('--close-stroke')) || 5;
+          const scaleX = rect.width / width, scaleY = rect.height / height, scale = Math.min(scaleX, scaleY);
+          const cx_px = offX + sizePx/2, cy_px = rect.height - offY - sizePx/2;
+          const cx = cx_px / scale, cy = cy_px / scale; const half = (sizePx/2) / scale; const sw = strokePx / scale;
+          crossGroup.selectAll('*').remove();
+          const lines = [
+            { x1: cx - half, y1: cy - half, x2: cx + half, y2: cy + half },
+            { x1: cx - half, y1: cy + half, x2: cx + half, y2: cy - half }
+          ];
+          const color = 'orange';
+          lines.forEach(l=>{
+            crossGroup.append('line').attr('x1', l.x1).attr('y1', l.y1).attr('x2', l.x2).attr('y2', l.y2).attr('stroke', color).attr('stroke-width', sw).attr('stroke-linecap','round');
+          });
+        }
+
+        // Observer : si la ville change (header)
+        const observer = new MutationObserver(()=> {
+          if (window.__skipNextCityMutation){ window.__skipNextCityMutation = false; return; }
+          const city = document.getElementById('city').textContent.trim();
+          updateCityMarker(city);
+          updateCompareGraphics();
+        });
+        observer.observe(document.getElementById('city'), { childList:true, characterData:true, subtree:true });
+
+        // Redessiner croix au resize
+        window.addEventListener('resize', drawCloseCross);
+
+        // Initialisation
+        placeInitialMarker();
+        drawCloseCross();
+
+      } catch(e){
+        console.warn("world-atlas fetch failed, fallback minimal:", e);
+        g.append("path").attr("class","sphere").attr("d",path({type:"Sphere"}));
+        g.append("path").attr("class","graticule").attr("d",path(graticule));
+      }
+    })();
+  </script>
+
+<script>
+    // Service worker
+    if ("serviceWorker" in navigator && (location.protocol === "http:" || location.protocol === "https:")) {
+      navigator.serviceWorker.register("/sw.js").catch(e => console.log("SW registration failed:", e));
+    }
+
+    // Reset: remet le bouton "time difference"
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      if (window.resetDiff) window.resetDiff();
+    });
+
+    // Ouvrir / fermer la carte + gestion de la croix
+    (function () {
+      var btn = document.getElementById('showMapBtn');
+      var area = document.getElementById('mapArea');
+      var closeBtn = document.getElementById('closeMapBtn');
+      if (!btn || !area) return;
+
+      function onOpen(){
+        btn.style.display = 'none';
+        area.style.display = 'block';
+        if (closeBtn) closeBtn.style.display = 'block';
+        if (window.requestAnimationFrame){
+          requestAnimationFrame(()=>{ try { window.dispatchEvent(new Event('resize')); } catch(e){} });
+        } else {
+          try { window.dispatchEvent(new Event('resize')); } catch(e){}
+        }
+      }
+
+      btn.addEventListener('click', onOpen);
+
+      if (closeBtn){
+        closeBtn.addEventListener('click', function(){
+          area.style.display = 'none';
+          btn.style.display = 'block';
+          closeBtn.style.display = 'none';
+          // Cacher les zones horaires quand on ferme
+          area.classList.remove('show-timezones');
+          if (window.showTimezoneLayers) window.showTimezoneLayers(false);
+        });
+      }
+    })();
+  </script>
+<script src="countries/capitals_loader.js"></script>
+
+<script>
+(function(){
+  
+  // Helper to toggle timezone layer visibility explicitly
+  window.showTimezoneLayers = function(show){
+    try {
+      if (window.__timezoneGroup) {
+        window.__timezoneGroup.attr("display", show ? "block" : "none");
+        if (show && window.__timezoneGroup.raise) window.__timezoneGroup.raise();
+      }
+      if (window.__tzCounter) window.__tzCounter.style("display", show ? "block" : "none");
+    } catch(e) {}
+  };
+
+  const btnTZ = document.getElementById('timezoneBtn');
+  const btnMap = document.getElementById('showMapBtn');
+  const area = document.getElementById('mapArea');
+  const closeBtn = document.getElementById('closeMapBtn');
+
+  function openTimezone(){
+    // Ouvrir la carte d'abord
+    if (btnMap) btnMap.style.display = 'none';
+    if (area) area.style.display = 'block';
+    if (closeBtn) closeBtn.style.display = 'block';
+    
+    // Afficher les zones horaires
+    if (window.showTimezoneLayers) window.showTimezoneLayers(true);
+    
+    // z-index so map sits above the map button
+    if (area && area.style.zIndex !== '30') area.style.zIndex = '30';
+    if (btnMap) btnMap.style.zIndex = '5';
+    
+    // Trigger resize pour redessiner la carte
+    if (window.requestAnimationFrame){
+      requestAnimationFrame(()=>{ try { window.dispatchEvent(new Event('resize')); } catch(e){} });
+    } else {
+      try { window.dispatchEvent(new Event('resize')); } catch(e){}
+    }
+  }
+
+  function closeTimezoneExtras(){
+    if (window.showTimezoneLayers) window.showTimezoneLayers(false);
+  }
+
+  if (btnTZ) btnTZ.addEventListener('click', openTimezone);
+  if (closeBtn) closeBtn.addEventListener('click', closeTimezoneExtras);
+  if (btnMap) btnMap.addEventListener('click', function(){ // opening via map should hide timezones
+    area && area.classList.remove('hide-diff','no-night','show-timezones');
+    if (window.showTimezoneLayers) window.showTimezoneLayers(false);
+  });
+})();
+</script>
+</body>
+</html>

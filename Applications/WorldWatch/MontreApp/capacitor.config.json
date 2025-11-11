@@ -1,0 +1,8 @@
+{
+  "appId": "com.toi.montre",
+  "appName": "Montre",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http"
+  }
+}

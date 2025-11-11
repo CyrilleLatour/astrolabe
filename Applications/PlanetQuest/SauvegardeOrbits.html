@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbits of the planets</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app-container {
+      width: min(100vw, 380px);
+      height: 100vh;
+      background-color: black;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 25px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      position: relative;
+    }
+
+    svg { background: #111; display: block; margin: auto; }
+    .orbit { fill: none; stroke: lightgray; stroke-width: 1; opacity: 0.8; }
+    .planet { stroke: white; stroke-width: 0.5; }
+    text { font-family: century gothic, arial, calibri; font-size: 15px; fill: white }
+
+    /* Centrage de Simulated date */
+    .app-container > div:first-child {
+      text-align: center;
+      margin: 10px 0 5px 0;
+      color: white;
+      margin-top: 20px;
+      margin-bottom: -20px;
+      }
+
+    #date input {
+      outline:none;
+    }
+
+    /* ✅ Date centrée en haut */
+    #realDateLabel {
+      text-align: center;
+      width: 100%;
+      margin: 15px 0 5px 0;
+      font-size: 0.9em;
+      display: block;
+    }
+
+    /* ✅ Contrôles centrés et en ligne */
+    #controls {
+      margin: 5px;
+      display: block;
+      justify-content: center;   /* centre horizontalement */
+      align-items: center;
+      gap: 5px;
+      width: 100%;
+      flex-wrap: nowrap;
+    }
+
+    
+    select, button {
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    #sliderContainer { 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 5px; 
+      width: 90%;
+      margin-top: -5px; 
+      margin-bottom: 10px; 
+    }
+
+    #slider { width: 100%; }
+
+    .Back {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      font-family: century gothic, arial, calibri;
+      color: white;
+      background-color: black;
+      font-size: 0.8em;
+      border: 2px solid white;
+      padding: 5px 8px;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+
+    .Back:hover {
+      color: black;
+      background-color: white;
+      border: 2px solid black;
+    }
+
+   #dateInput {
+    border-radius: 5px;
+  } 
+
+  #chart {
+    height: 400px;
+    margin-top: 20px;
+  }
+
+  #sliderContainer span {
+  font-family: century gothic, arial, calibri;
+  color: white;
+  font-size: 12px;
+  min-width: 60px;
+  text-align: center;
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <div>
+      <label for="dateInput" style="font-family: century gothic, arial, calibri">Simulated date:</label>
+      <input type="datetime-local" id="dateInput"/>
+    </div>
+
+    <!-- ✅ Centré horizontalement -->
+    <p id="realDateLabel"></p>
+
+    <div id="sliderContainer">
+      <span>Mercury</span>
+      <input type="range" id="slider" min="0" max="1" step="0.001" value="1"/>
+      <span>Neptune</span>
+    </div>
+
+    <!-- ✅ Centré horizontalement et réduit -->
+    <div id="controls">
+      <label for="speedSelect">Speed:</label>
+      <select id="speedSelect">
+        <option value="1">1 day/s</option>
+        <option value="7">1 week/s</option>
+        <option value="30">1 month/s</option>
+        <option value="365">1 year/s</option>
+      </select>
+      <button onclick="play()">▶️ Play</button>
+      <button onclick="pause()">⏸ Pause</button>
+      <button onclick="now()">⏱ Now</button>
+    </div>
+
+    <div id="chart"></div>
+
+    <a href="PlanetQuest.html" class="Back">⬅ Back</a>
+  </div>
+
+  <script>
+    const planets = {
+      Mercury: { a: 0.387, e: 0.2056, period: 88, color: "darkgray", dOmega: 5.02e-7 },
+      Venus:   { a: 0.723, e: 0.0067, period: 225, color: "orange", dOmega: 1.5e-7 },
+      Earth:   { a: 1.000, e: 0.0167, period: 365, color: "blue", dOmega: 1.7e-7 },
+      Mars:    { a: 1.524, e: 0.0934, period: 687, color: "red", dOmega: 1.35e-7 },
+      Jupiter: { a: 5.203, e: 0.0489, period: 4331, color: "brown", dOmega: 0.07e-7 },
+      Saturn:  { a: 9.537, e: 0.0565, period: 10747, color: "goldenrod", dOmega: 0.02e-7 },
+      Uranus:  { a: 19.191, e: 0.0463, period: 30589, color: "cyan", dOmega: 0.002e-7 },
+      Neptune: { a: 30.068, e: 0.0103, period: 59800, color: "purple", dOmega: 0.001e-7 }
+    };
+
+    let currentDate = new Date();
+    let speed = 0;
+    let playing = false;
+    let lastFrame = null;
+
+    function computeScale(f) {
+      const aMin = planets["Mercury"].a;
+      const aMax = planets["Neptune"].a;
+      const targetA = aMin * Math.pow(aMax/aMin, f);
+      
+      // Facteur qui diminue quand on zoome sur Mercure
+      const factor = 0.80 + (f * 0.15);
+      
+      return (280 / targetA) * factor;
+    }
+
+    function getPlanetPosition(p, date) {
+      const JD0 = new Date("2000-01-01T12:00:00Z");
+      const days = (date - JD0) / 86400000;
+      const M = 2 * Math.PI * (days % p.period) / p.period;
+      let E = M;
+      for (let i = 0; i < 6; i++) { E = M + p.e * Math.sin(E); }
+      const xPrime = p.a * (Math.cos(E) - p.e);
+      const yPrime = p.a * Math.sqrt(1 - p.e*p.e) * Math.sin(E);
+      const years = days / 365.25;
+      const omega = p.dOmega * years;
+      const cosO = Math.cos(omega), sinO = Math.sin(omega);
+      return { x: xPrime * cosO - yPrime * sinO, y: xPrime * sinO + yPrime * cosO };
+    }
+
+    function getOrbitPath(p, date, scale) {
+      const JD0 = new Date("2000-01-01T12:00:00Z");
+      const days = (date - JD0) / 86400000;
+      const years = days / 365.25;
+      const omega = p.dOmega * years;
+      const cosO = Math.cos(omega), sinO = Math.sin(omega);
+      let path = "";
+      const steps = 200;
+      for (let i = 0; i <= steps; i++) {
+        const M = 2 * Math.PI * i / steps;
+        let E = M;
+        for (let j = 0; j < 6; j++) { E = M + p.e * Math.sin(E); }
+        const xPrime = p.a * (Math.cos(E) - p.e);
+        const yPrime = p.a * Math.sqrt(1 - p.e*p.e) * Math.sin(E);
+        const x = xPrime * cosO - yPrime * sinO;
+        const y = xPrime * sinO + yPrime * cosO;
+        path += `${x*scale},${-y*scale} `;
+      }
+      return path;
+    }
+
+    function draw() {
+      const f = parseFloat(document.getElementById("slider").value);
+      const scale = computeScale(f);
+      let svg = `<svg width="100%" height="100%" viewBox="-300 -300 600 600">`;
+      svg += `<circle cx="0" cy="0" r="6" fill="yellow" stroke="orange"/>`;
+      for (const [name, p] of Object.entries(planets)) {
+        const path = getOrbitPath(p, currentDate, scale);
+        svg += `<polyline class="orbit" points="${path}" />`;
+        const pos = getPlanetPosition(p, currentDate);
+        svg += `<circle class="planet" cx="${pos.x*scale}" cy="${-pos.y*scale}" r="4" fill="${p.color}"/>`;
+        svg += `<text x="${pos.x*scale+6}" y="${-pos.y*scale}">${name}</text>`;
+      }
+      svg += `</svg>`;
+      document.getElementById("chart").innerHTML = svg;
+      document.getElementById("dateInput").value = currentDate.toISOString().slice(0,16);
+    }
+
+    function animate(timestamp) {
+      if (playing) {
+        if (lastFrame) {
+          const dt = (timestamp - lastFrame) / 1000;
+          currentDate = new Date(currentDate.getTime() + dt * speed * 86400000);
+        }
+        lastFrame = timestamp;
+      } else {
+        lastFrame = null;
+      }
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    function play() {
+      if (!speed) {
+        speed = parseFloat(document.getElementById("speedSelect").value) || 1;
+      }
+      playing = true;
+      lastFrame = null;
+    }
+    function pause() { playing = false; }
+    function now() { currentDate = new Date(); playing = false; draw(); }
+
+    document.getElementById("speedSelect").addEventListener("change", (e) => {
+      speed = parseFloat(e.target.value);
+    });
+    document.getElementById("dateInput").addEventListener("change", (e) => {
+      const newDate = new Date(e.target.value);
+      if (!isNaN(newDate)) { currentDate = newDate; draw(); }
+    });
+    document.getElementById("slider").addEventListener("input", () => draw());
+
+    function updateRealDate() {
+      const now = new Date();
+      document.getElementById("realDateLabel").textContent = "Real date: " + now.toLocaleString();
+    }
+    setInterval(updateRealDate, 1000);
+    updateRealDate();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      speed = parseFloat(document.getElementById("speedSelect").value) || 1;
+      draw();
+      requestAnimationFrame(animate);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>TEST CAM</title>
+<style>
+  html,body{margin:0;height:100%;background:#000}
+  /* plein écran robuste sur mobile */
+  video{
+    position:fixed; top:0; left:0;
+    width:100vw; height:100dvh;   /* d>vh gère les barres d’adresse mobiles */
+    object-fit:cover;
+    background:#111;
+  }
+  #go{position:fixed;right:8px;bottom:8px;z-index:10}
+  #log{position:fixed;left:8px;bottom:8px;color:#fff;z-index:10}
+</style>
+<button id="go">Démarrer caméra</button>
+<pre id="log"></pre>
+<video id="v" playsinline autoplay muted></video>
+<script>
+const v=document.getElementById('v'), log=t=>document.getElementById('log').textContent=t;
+async function tryCam(c,label){
+  try{const s=await navigator.mediaDevices.getUserMedia(c); v.srcObject=s; await v.play(); log('Caméra OK: '+label); return true;}
+  catch(e){log('Caméra KO '+label+': '+e.name+' — '+e.message); return false;}
+}
+document.getElementById('go').onclick=async()=>{
+  if(await tryCam({video:{facingMode:{ideal:'environment'}},audio:false},'arrière'))return;
+  if(await tryCam({video:{facingMode:{ideal:'user'}},audio:false},'avant'))return;
+  await tryCam({video:true,audio:false},'défaut');
+};
+</script>
+</html>

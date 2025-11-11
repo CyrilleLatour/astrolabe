@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8">
+<title>TEST SENSORS</title>
+<pre id="out" style="font:14px monospace;white-space:pre-wrap"></pre>
+<script>
+const out=document.getElementById('out'); let n=0;
+function p(...a){out.textContent=[...a].join(' ')+'\n'+out.textContent.split('\n').slice(0,20).join('\n');}
+p('Tape le cadenas du site et autorise "Capteurs/Mouvement".');
+window.addEventListener('deviceorientation',e=>{
+  p(`#${++n} alpha=${e.alpha?.toFixed?.(1)}  beta=${e.beta?.toFixed?.(1)}  gamma=${e.gamma?.toFixed?.(1)}`);
+},{passive:true});
+</script>
