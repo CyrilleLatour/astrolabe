@@ -154,6 +154,13 @@ def tympan():
     latitude_rad = math.radians(latitude)
     angle_max_deg = 90 - latitude
     
+    print("=" * 60)
+    print(f"AVANT APPEL generer_points_cercles:")
+    print(f"  latitude = {latitude}")
+    print(f"  horizon type = {horizon.get('type') if horizon else 'None'}")
+    print(f"  horizon data = {horizon}")
+    print("=" * 60)
+    
     points_heures = points.generer_points_cercles(
         cx=300,
         cy=centre_y,
@@ -164,6 +171,14 @@ def tympan():
         angle_max_deg=angle_max_deg,
         horizon_data=horizon
     )
+    
+    print("=" * 60)
+    print(f"APRÈS APPEL generer_points_cercles:")
+    print(f"  courbes_gauche = {len(points_heures.get('courbes_gauche', []))}")
+    print(f"  courbes_droite = {len(points_heures.get('courbes_droite', []))}")
+    if points_heures.get('courbes_gauche'):
+        print(f"  Premier élément gauche: {points_heures['courbes_gauche'][0]}")
+    print("=" * 60)
 
     ligne_suppl_horizon = None
     

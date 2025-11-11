@@ -46,7 +46,133 @@ def generer_points_cercles(cx, cy, facteur, rayon_cancer, rayon_equateur, rayon_
     courbes_gauche = []
     courbes_droite = []
 
-    # === CALCUL DE L'ANGLE DE L'HORIZON ===
+    # === CAS SPÉCIAL : LATITUDE 0°0'0'' (ÉQUATEUR) ===
+    if horizon_data and horizon_data.get('type') == 'ligne_horizontale':
+        print("=" * 60)
+        print("DÉTECTION LATITUDE 0°0'0'' - GÉNÉRATION LIGNES RAYONNANTES")
+        print(f"horizon_data type: {horizon_data.get('type')}")
+        print("=" * 60)
+        
+        # À l'équateur, les heures inégales sont des lignes droites qui rayonnent du centre
+        # Il faut 11 lignes (heures 1 à 11) + la ligne verticale de la 6ème heure
+        
+        # On génère 5 lignes à gauche (heures 7, 8, 9, 10, 11) 
+        # et 5 à droite (heures 1, 2, 3, 4, 5)
+        # + la 6ème heure (midi) sur l'axe vertical
+        
+        # Angles : chaque heure = 15° (360° / 24h)
+        # À partir de l'Est (0°) dans le sens antihoraire
+        # MAIS en coordonnées SVG où Y est inversé
+        
+        for i in range(1, 6):  # 5 lignes à gauche (heures 7, 8, 9, 10, 11)
+            # Heure = 6 + i (donc 7, 8, 9, 10, 11)
+            # Angle depuis l'Est : (6+i) * 15° = 105°, 120°, 135°, 150°, 165°
+            angle_deg = (6 + i) * 15
+            angle_rad = math.radians(angle_deg)
+            
+            # Point sur le cercle du Cancer (rayon = rayon_cancer)
+            x_cancer = rayon_cancer * math.cos(angle_rad)
+            y_cancer = rayon_cancer * math.sin(angle_rad)
+            x_cancer_svg = cx + x_cancer * facteur
+            y_cancer_svg = cy + y_cancer * facteur  # PAS d'inversion - on veut en BAS
+            
+            # Point sur le cercle du Capricorne (rayon = rayon_capricorne)
+            x_capricorne = rayon_capricorne * math.cos(angle_rad)
+            y_capricorne = rayon_capricorne * math.sin(angle_rad)
+            x_capricorne_svg = cx + x_capricorne * facteur
+            y_capricorne_svg = cy + y_capricorne * facteur  # PAS d'inversion - on veut en BAS
+            
+            p_cancer = {"x": x_cancer_svg, "y": y_cancer_svg}
+            p_capricorne = {"x": x_capricorne_svg, "y": y_capricorne_svg}
+            
+            points_cancer_gauche.append(p_cancer)
+            points_capricorne_gauche.append(p_capricorne)
+            
+            # Ligne droite du Cancer au Capricorne
+            courbes_gauche.append({
+                "p1": p_cancer,
+                "p3": p_capricorne,
+                "rayon": 999999,
+                "large_arc": 0,
+                "sweep": 1,
+                "type": "ligne_verticale"
+            })
+        
+        print(f"Nombre de courbes à gauche générées: {len(courbes_gauche)}")
+        
+        for i in range(1, 6):  # 5 lignes à droite (heures 1, 2, 3, 4, 5)
+            # Angle depuis l'Est : i * 15° = 15°, 30°, 45°, 60°, 75°
+            angle_deg = i * 15
+            angle_rad = math.radians(angle_deg)
+            
+            # Point sur le cercle du Cancer (rayon = rayon_cancer)
+            x_cancer = rayon_cancer * math.cos(angle_rad)
+            y_cancer = rayon_cancer * math.sin(angle_rad)
+            x_cancer_svg = cx + x_cancer * facteur
+            y_cancer_svg = cy + y_cancer * facteur  # PAS d'inversion - on veut en BAS
+            
+            # Point sur le cercle du Capricorne (rayon = rayon_capricorne)
+            x_capricorne = rayon_capricorne * math.cos(angle_rad)
+            y_capricorne = rayon_capricorne * math.sin(angle_rad)
+            x_capricorne_svg = cx + x_capricorne * facteur
+            y_capricorne_svg = cy + y_capricorne * facteur  # PAS d'inversion - on veut en BAS
+            
+            p_cancer = {"x": x_cancer_svg, "y": y_cancer_svg}
+            p_capricorne = {"x": x_capricorne_svg, "y": y_capricorne_svg}
+            
+            points_cancer_droite.append(p_cancer)
+            points_capricorne_droite.append(p_capricorne)
+            
+            # Ligne droite du Cancer au Capricorne
+            courbes_droite.append({
+                "p1": p_cancer,
+                "p3": p_capricorne,
+                "rayon": 999999,
+                "large_arc": 0,
+                "sweep": 0,
+                "type": "ligne_verticale"
+            })
+        
+        # AJOUTER LA 6ÈME HEURE (LIGNE VERTICALE - MIDI)
+        # Angle = 90° (vers le haut en coordonnées mathématiques, vers le bas en SVG)
+        angle_6h = math.radians(90)
+        
+        x_6h_cancer = rayon_cancer * math.cos(angle_6h)  # = 0
+        y_6h_cancer = rayon_cancer * math.sin(angle_6h)  # = rayon_cancer
+        x_6h_cancer_svg = cx + x_6h_cancer * facteur
+        y_6h_cancer_svg = cy + y_6h_cancer * facteur
+        
+        x_6h_capricorne = rayon_capricorne * math.cos(angle_6h)  # = 0
+        y_6h_capricorne = rayon_capricorne * math.sin(angle_6h)  # = rayon_capricorne
+        x_6h_capricorne_svg = cx + x_6h_capricorne * facteur
+        y_6h_capricorne_svg = cy + y_6h_capricorne * facteur
+        
+        # On l'ajoute aux courbes de droite
+        courbes_droite.append({
+            "p1": {"x": x_6h_cancer_svg, "y": y_6h_cancer_svg},
+            "p3": {"x": x_6h_capricorne_svg, "y": y_6h_capricorne_svg},
+            "rayon": 999999,
+            "large_arc": 0,
+            "sweep": 0,
+            "type": "ligne_verticale"
+        })
+        
+        print(f"Nombre de courbes à droite générées: {len(courbes_droite)}")
+        print(f"RETOUR: {len(courbes_gauche)} courbes gauche, {len(courbes_droite)} courbes droite")
+        print("=" * 60)
+        
+        return {
+            "points_cancer_gauche": points_cancer_gauche,
+            "points_cancer_droite": points_cancer_droite,
+            "points_equateur_gauche": points_equateur_gauche,
+            "points_equateur_droite": points_equateur_droite,
+            "points_capricorne_gauche": points_capricorne_gauche,
+            "points_capricorne_droite": points_capricorne_droite,
+            "courbes_gauche": courbes_gauche,
+            "courbes_droite": courbes_droite
+        }
+
+    # === CAS NORMAL : AUTRES LATITUDES ===
     if horizon_data and horizon_data.get('type') != 'ligne_horizontale':
         rayon_horizon = horizon_data['rayon']
         cy_horizon = horizon_data['cy']

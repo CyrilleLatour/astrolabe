@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -338,6 +337,28 @@
                     {% endfor %}
                 </g>
                 
+                <!-- Courbes d'heures inégales pour latitude 0°0'0'' -->
+                {% if points_heures and points_heures.courbes_gauche %}
+                    {% for courbe in points_heures.courbes_gauche %}
+                        <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                              x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                              stroke="black" stroke-width="1"/>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if points_heures and points_heures.courbes_droite %}
+                    {% for courbe in points_heures.courbes_droite %}
+                        <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                              x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                              stroke="black" stroke-width="1"/>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Ligne 6e heure (midi) -->
+                <line x1="300" y1="{{ centre_y - (fixed_radius_cancer * facteur) }}"
+                      x2="300" y2="{{ centre_y + (fixed_radius_capricorne * facteur) }}"
+                      stroke="black" stroke-width="1"/>
+                
                 <!-- Masque final : cacher tout en dehors du cercle violet -->
                 <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-equateur)" />
                 
@@ -632,22 +653,38 @@
                 <!-- Courbes d'heures inégales à gauche -->
                 {% if points_heures and points_heures.courbes_gauche %}
                     {% for courbe in points_heures.courbes_gauche %}
-                    <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
-                             A {{ courbe.rayon }} {{ courbe.rayon }} 
-                             0 {{ courbe.large_arc }} {{ courbe.sweep }} 
-                             {{ courbe.p3.x }} {{ courbe.p3.y }}" 
-                          stroke="black" stroke-width="1" fill="none"/>
+                        {% if courbe.type == 'ligne_verticale' %}
+                            <!-- Ligne verticale pour latitude 0°0'0'' -->
+                            <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                                  x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                                  stroke="black" stroke-width="1"/>
+                        {% else %}
+                            <!-- Arc normal pour autres latitudes -->
+                            <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
+                                     A {{ courbe.rayon }} {{ courbe.rayon }} 
+                                     0 {{ courbe.large_arc }} {{ courbe.sweep }} 
+                                     {{ courbe.p3.x }} {{ courbe.p3.y }}" 
+                                  stroke="black" stroke-width="1" fill="none"/>
+                        {% endif %}
                     {% endfor %}
                 {% endif %}
                 
                 <!-- Courbes d'heures inégales à droite -->
                 {% if points_heures and points_heures.courbes_droite %}
                     {% for courbe in points_heures.courbes_droite %}
-                    <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
-                             A {{ courbe.rayon }} {{ courbe.rayon }} 
-                             0 {{ courbe.large_arc }} {{ courbe.sweep }} 
-                             {{ courbe.p3.x }} {{ courbe.p3.y }}" 
-                          stroke="black" stroke-width="1" fill="none"/>
+                        {% if courbe.type == 'ligne_verticale' %}
+                            <!-- Ligne verticale pour latitude 0°0'0'' -->
+                            <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                                  x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                                  stroke="black" stroke-width="1"/>
+                        {% else %}
+                            <!-- Arc normal pour autres latitudes -->
+                            <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
+                                     A {{ courbe.rayon }} {{ courbe.rayon }} 
+                                     0 {{ courbe.large_arc }} {{ courbe.sweep }} 
+                                     {{ courbe.p3.x }} {{ courbe.p3.y }}" 
+                                  stroke="black" stroke-width="1" fill="none"/>
+                        {% endif %}
                     {% endfor %}
                 {% endif %}
 
