@@ -1,4 +1,3 @@
-
 # app.py
 from flask import Flask, Blueprint, render_template, request, session, redirect, url_for
 import time, webbrowser, traceback, os, sys
@@ -139,7 +138,9 @@ def index():
     if request.method == 'POST':
         if 'diametre' in request.form and request.form['diametre']:
             diametre = int(request.form['diametre'])
-            rayon_equateur = (diametre / 24.7) * 6
+            # ✅ CORRECTION : Le diamètre du limbe = rayon_equateur × (2 × 10.5 / 6) = rayon_equateur × 3.5
+            # Donc : rayon_equateur = diametre_astrolabe / 3.5
+            rayon_equateur = diametre / 3.5
             session['rayon_equateur'] = rayon_equateur
             session['diametre_astrolabe'] = diametre
             validation_ok = True

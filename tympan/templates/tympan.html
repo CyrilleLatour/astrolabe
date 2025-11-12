@@ -121,10 +121,18 @@
 
             function updateDMSFromLatitude() {
                 const v = parseFloat(latInput.value);
-                if (isNaN(v) || v === 0) {
+                if (isNaN(v)) {
                     degresSelect.value = "";
                     minutesSelect.value = "";
                     secondesSelect.value = "";
+                    return;
+                }
+                // ✅ CORRECTION : Gérer le cas spécial de 0°0'0''
+                if (v === 0) {
+                    degresSelect.value = "0";
+                    minutesSelect.value = "0";
+                    secondesSelect.value = "0";
+                    hideChart();
                     return;
                 }
                 const deg = Math.floor(v);
@@ -176,10 +184,10 @@
             <div class="selection-group">
                 <label for="degres">Degrés:</label>
                 <select name="degres" id="degres">
-                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
-                    <option value="0" {% if not first_visit and latitude and latitude|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    <option value="" {% if first_visit or latitude is none or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude is not none and latitude|int == 0 and reset != '1' %}selected{% endif %}>0</option>
                     {% for i in range(1, 66) %}
-                    <option value="{{ i }}" {% if not first_visit and latitude and latitude|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    <option value="{{ i }}" {% if not first_visit and latitude is not none and latitude|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -187,10 +195,10 @@
             <div class="selection-group">
                 <label for="minutes">Minutes:</label>
                 <select name="minutes" id="minutes">
-                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
-                    <option value="0" {% if not first_visit and latitude and ((latitude|float % 1) * 60)|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    <option value="" {% if first_visit or latitude is none or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60)|int == 0 and reset != '1' %}selected{% endif %}>0</option>
                     {% for i in range(1, 60) %}
-                    <option value="{{ i }}" {% if not first_visit and latitude and ((latitude|float % 1) * 60)|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    <option value="{{ i }}" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60)|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -198,10 +206,10 @@
             <div class="selection-group">
                 <label for="secondes">Secondes:</label>
                 <select name="secondes" id="secondes">
-                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
-                    <option value="0" {% if not first_visit and latitude and ((latitude|float % 1) * 60 % 1 * 60)|round|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    <option value="" {% if first_visit or latitude is none or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60 % 1 * 60)|round|int == 0 and reset != '1' %}selected{% endif %}>0</option>
                     {% for i in range(1, 60) %}
-                    <option value="{{ i }}" {% if not first_visit and latitude and ((latitude|float % 1) * 60 % 1 * 60)|round|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    <option value="{{ i }}" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60 % 1 * 60)|round|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -209,7 +217,7 @@
             <div class="selection-group">
                 <label for="latitudeDecimale">Latitude (degrés décimaux):</label>
                 <input style="width:100px" type="text" id="latitudeDecimale" name="latitudeDecimale" placeholder="Sélectionner" required
-                       value="{% if not first_visit and latitude and reset != '1' %}{{ latitude|float|round(4) }}{% endif %}">
+                       value="{% if not first_visit and latitude is not none and reset != '1' %}{{ latitude|float|round(4) }}{% endif %}">
             </div>
 
             <div class="selection-group">
@@ -230,7 +238,7 @@
             distance: <span id="dist">0.00</span>
         </div>
         
-        <div class="chart-wrapper" data-facteur="{{ facteur }}">
+        <div class="chart-wrapper" data-facteur="{{ facteur }}" data-rayon-equateur="{{ rayon_equateur }}">
             <svg viewBox="0 0 600 600">
                 {% if latitude == 0 %}
                 <!-- ========================================= -->
@@ -814,10 +822,20 @@ function afficherCoordTympan(evt) {
 
     const chartWrapper = document.querySelector('.chart-wrapper');
     const facteur = parseFloat(chartWrapper.getAttribute('data-facteur')) || 1;
+    const rayon_equateur = parseFloat(chartWrapper.getAttribute('data-rayon-equateur')) || 6;
     const centre_y = 300;
     
-    const x_reel = (cursorpt.x - 300) / facteur;
-    const y_reel = (centre_y - cursorpt.y) / facteur;
+    // Coordonnées en unités de base (rayon_equateur = 6)
+    const x_base = (cursorpt.x - 300) / facteur;
+    const y_base = (centre_y - cursorpt.y) / facteur;
+    
+    // ✅ CONVERSION EN CENTIMÈTRES RÉELS
+    // Le rayon du limbe en unités de base = 10.5
+    // Le rayon du limbe en cm = rayon_equateur × (10.5 / 6)
+    // Donc : facteur_cm = rayon_equateur × (10.5 / 6) / 10.5 = rayon_equateur / 6
+    const facteur_cm = rayon_equateur / 6;
+    const x_reel = x_base * facteur_cm;
+    const y_reel = y_base * facteur_cm;
     
     const x = x_reel.toFixed(2);
     const y = y_reel.toFixed(2);

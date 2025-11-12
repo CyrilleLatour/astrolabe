@@ -9,7 +9,7 @@ from tympan.almucantarats.almucantarats import Almucantarats
 
 
 # ================================================================
-# 🟨 CLASSE CREPUSCULES – calculs des cercles extrapolés et solstices
+# 🟨 CLASSE CREPUSCULES — calculs des cercles extrapolés et solstices
 # ================================================================
 
 class Crepuscules:
@@ -104,13 +104,21 @@ class Crepuscules:
 
         Z_crepuscules = [-6, -12, -18]
 
-        # Étape 1 : vérifier quels cercles sont calculables
+        # Étape 1 : vérifier quels cercles sont calculables ET valides
         cercles_calcules = {}
         for Z in Z_crepuscules:
             cercle = alm.calculer_almucantarat(Z)
+            
+            # ✅ CORRECTION 1: Vérifier que le cercle existe ET n'est pas une ligne horizontale
             if cercle and cercle.get("type") != "ligne_horizontale":
-                cercles_calcules[Z] = True
-                print(f"✅ Cercle Z={Z}° est calculable directement")
+                # ✅ CORRECTION 2: Vérifier que le rayon n'est pas gigantesque
+                # Si rayon > 1000, c'est pratiquement une droite
+                rayon = cercle.get('rayon', 0)
+                if rayon < 1000:
+                    cercles_calcules[Z] = True
+                    print(f"✅ Cercle Z={Z}° est calculable directement (rayon={rayon:.2f})")
+                else:
+                    print(f"🔴 Cercle Z={Z}° a un rayon trop grand ({rayon:.2f}), doit être extrapolé")
             else:
                 print(f"🔴 Cercle Z={Z}° doit être extrapolé")
 
@@ -201,7 +209,7 @@ class Crepuscules:
         return cercles_crepuscules
 
     # ----------------------------------------------------------------
-    # 🔹 COMBINAISON TOTALE – solstices + crépuscules
+    # 🔹 COMBINAISON TOTALE — solstices + crépuscules
     # ----------------------------------------------------------------
     def get_data(self):
         cercles_solstices = self.get_cercles_solstices()

@@ -4,6 +4,9 @@ class Almucantarats:
     # Facteurs de correction pour l'échelle
     f_rayon_custom = 0.0368633
     f_position_custom = 0.0381462
+    
+    # ✅ SEUIL : au-delà de ce rayon, on considère que c'est une ligne horizontale
+    SEUIL_RAYON_LIGNE = 1000
 
     def __init__(self, rayon_equateur, latitude):
         self.rayon_equateur = float(rayon_equateur)
@@ -61,6 +64,10 @@ class Almucantarats:
         # Si l'almucantarat n'existe pas (retourne None), pas d'intersection possible
         if almucantarat is None:
             print(f"DEBUG ALMU - Almucantarat {hauteur}° n'existe pas à latitude {self.latitude}°")
+            return None
+        
+        # Si c'est une ligne horizontale, pas d'intersection classique
+        if almucantarat.get('type') == 'ligne_horizontale':
             return None
         
         print(f"DEBUG ALMU - Almucantarat {hauteur}° :")
@@ -211,8 +218,8 @@ class Almucantarats:
                     {
                         'type': 'cercle',
                         'cx': 0,
-                        'cy': 7.83,
-                        'rayon': 5.03,
+                        'cy': 7.84,
+                        'rayon': 5.04,
                         'hauteur': 50,
                         'style': {
                             'stroke': 'black',
@@ -224,8 +231,8 @@ class Almucantarats:
                     {
                         'type': 'cercle',
                         'cx': 0,
-                        'cy': 7.32,
-                        'rayon': 4.2,
+                        'cy': 7.33,
+                        'rayon': 4.23,
                         'hauteur': 55,
                         'style': {
                             'stroke': 'gray',
@@ -375,8 +382,17 @@ class Almucantarats:
         # Vérifier si le cercle peut exister à cette latitude
         # Un almucantarat à hauteur h ne peut exister que si |latitude - h| < 90°
         if hauteur < 0:  # Pour les cercles crépusculaires
-            # Ils ne peuvent exister que si la latitude est assez haute
-            # Par exemple, le crépuscule civil (-6°) ne peut être observé que si latitude > |-6°|
+            # ✅ CORRECTION : Détecter la zone critique où latitude ≈ |hauteur|
+            # Dans cette zone, le rayon devient gigantesque
+            diff = abs(abs(self.latitude) - abs(hauteur))
+            
+            # Si la différence est très petite (< 0.05°), on est dans la zone de transition
+            # où le cercle a un rayon gigantesque
+            if diff < 0.05:  # 0.05° = 3 arcminutes = 180 arcsec
+                print(f"⚠️  Zone critique détectée : latitude {self.latitude}° ≈ |hauteur| {abs(hauteur)}° (diff={diff:.4f}°)")
+                # On va quand même calculer, mais on vérifiera le rayon après
+            
+            # Si latitude < |hauteur|, le cercle n'existe pas du tout
             if abs(self.latitude) < abs(hauteur):
                 print(f"DEBUG ALMU - Almucantarat {hauteur}° impossible à latitude {self.latitude}°")
                 return None
@@ -414,6 +430,24 @@ class Almucantarats:
             # Appliquer le facteur d'échelle
             rayon_scaled = rayon * self.facteur_echelle
             Y_scaled = Y * self.facteur_echelle
+            
+            # ✅ NOUVELLE VÉRIFICATION : Si le rayon est gigantesque (> seuil)
+            # C'est qu'on est dans la zone de transition juste après latitude = |hauteur|
+            # On doit convertir en ligne horizontale
+            if rayon_scaled > self.SEUIL_RAYON_LIGNE:
+                y_position = Y_scaled - rayon_scaled  # Position y de la ligne
+                print(f"🔶 Almucantarat {hauteur}° converti en LIGNE HORIZONTALE (rayon={rayon_scaled:.1f} > {self.SEUIL_RAYON_LIGNE})")
+                return {
+                    'type': 'ligne_horizontale',
+                    'y_offset': y_position,
+                    'hauteur': hauteur,
+                    'style': {
+                        'stroke': stroke,
+                        'stroke_width': stroke_width,
+                        'stroke_opacity': 1.0,
+                        'fill': 'none'
+                    }
+                }
             
             style = {
                 'stroke': stroke,

@@ -88,6 +88,9 @@
     <a href="{{ url_for('tympan.menu') }}" class="back-button">Retour</a>
 
     <script>
+        // ✅ Définir le diamètre de l'astrolabe depuis le serveur
+        const DIAMETRE_ASTROLABE = parseFloat("{{ diametre_astrolabe if diametre_astrolabe else 24.7 }}");
+        
         window.onload = function() {
             const svgNS = "http://www.w3.org/2000/svg";
             const contenu = document.getElementById("contenu");
@@ -206,11 +209,21 @@
             pt.y = evt.clientY;
             const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
             const scale = 0.9;
-            const x_corr = cursorpt.x / scale;
-            const y_corr = cursorpt.y / scale;
-            const x = x_corr.toFixed(2);
-            const y = (-y_corr).toFixed(2);
-            const dist = Math.sqrt(x_corr**2 + y_corr**2).toFixed(2);
+            const x_base = cursorpt.x / scale;
+            const y_base = cursorpt.y / scale;
+            
+            // ✅ CONVERSION EN CENTIMÈTRES RÉELS
+            // Dans le SVG, le rayon extérieur du limbe = 12.35
+            // Ce rayon correspond à diametre_astrolabe / 2
+            const facteur_cm = (DIAMETRE_ASTROLABE / 2) / 12.35;
+            
+            const x_reel = x_base * facteur_cm;
+            const y_reel = y_base * facteur_cm;
+            
+            const x = x_reel.toFixed(2);
+            const y = (-y_reel).toFixed(2);
+            const dist = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
+            
             document.getElementById("x").textContent = x;
             document.getElementById("y").textContent = y;
             document.getElementById("dist").textContent = dist;

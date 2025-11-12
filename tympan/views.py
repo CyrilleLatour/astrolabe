@@ -224,7 +224,9 @@ def menu():
 # ================================================================
 @tympan_bp.route('/limbe', methods=['GET', 'POST'])
 def limbe():
-    return render_template('limbe.html')
+    rayon_equateur = session.get('rayon_equateur', 6)
+    diametre_astrolabe = session.get('diametre_astrolabe', 24.7)
+    return render_template('limbe.html', rayon_equateur=rayon_equateur, diametre_astrolabe=diametre_astrolabe)
 
 
 # ================================================================
