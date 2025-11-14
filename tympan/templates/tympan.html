@@ -10,6 +10,21 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
+        
+        #rayon-box {
+        position: fixed;
+        top: 165px;
+        left: 10px;
+        padding: 6px 10px;
+        border: 1px solid black;
+        background-color: #f0f0f0;
+        font-family: monospace;
+        font-size: 14px;
+        width: 160px;
+        box-sizing: border-box;
+        z-index: 1000;
+    }
+        
         .container {
             margin-top: 20px;
         }
@@ -237,6 +252,10 @@
             y: <span id="y">0.00</span><br>
             distance: <span id="dist">0.00</span>
         </div>
+
+        <div id="rayon-box">
+            Rayon du tympan = <span id="rayon">0.0</span> cm
+        </div>
         
         <div class="chart-wrapper" data-facteur="{{ facteur }}" data-rayon-equateur="{{ rayon_equateur }}">
             <svg viewBox="0 0 600 600">
@@ -419,8 +438,6 @@
                     {{ latitude_dms }}
                 </text>
                 
-                <!-- Zone de capture souris -->
-                <rect x="0" y="0" width="600" height="600" fill="transparent" onmousemove="afficherCoordTympan(event)" />
                 
                 {% else %}
                 <!-- ========================================= -->
@@ -788,10 +805,13 @@
                     {{ latitude_dms }}
                 </text>
                 
-                <!-- Zone de capture souris -->
-                <rect x="0" y="0" width="600" height="600" fill="transparent" onmousemove="afficherCoordTympan(event)" />
-                {% endif %}
-            </svg>
+                <!-- Zone de capture souris (unique, correcte, sans doublon) -->
+<rect x="0" y="0" width="600" height="600"
+      fill="transparent"
+      pointer-events="all"
+      onmousemove="afficherCoordTympan(evt)" />
+{% endif %}
+
         </div>
 
         <div class="echelle-info" style="margin-top: 10px;">
@@ -814,6 +834,7 @@
 {% if show_chart and fixed_radius_suppl %}
 <script>
 function afficherCoordTympan(evt) {
+
     const svg = evt.target.ownerSVGElement;
     const pt = svg.createSVGPoint();
     pt.x = evt.clientX;
@@ -822,31 +843,49 @@ function afficherCoordTympan(evt) {
 
     const chartWrapper = document.querySelector('.chart-wrapper');
     const facteur = parseFloat(chartWrapper.getAttribute('data-facteur')) || 1;
-    const rayon_equateur = parseFloat(chartWrapper.getAttribute('data-rayon-equateur')) || 6;
-    const centre_y = 300;
-    
-    // Coordonnées en unités de base (rayon_equateur = 6)
-    const x_base = (cursorpt.x - 300) / facteur;
-    const y_base = (centre_y - cursorpt.y) / facteur;
-    
-    // ✅ CONVERSION EN CENTIMÈTRES RÉELS
-    // Le rayon du limbe en unités de base = 10.5
-    // Le rayon du limbe en cm = rayon_equateur × (10.5 / 6)
-    // Donc : facteur_cm = rayon_equateur × (10.5 / 6) / 10.5 = rayon_equateur / 6
-    const facteur_cm = rayon_equateur / 6;
-    const x_reel = x_base * facteur_cm;
-    const y_reel = y_base * facteur_cm;
-    
-    const x = x_reel.toFixed(2);
-    const y = y_reel.toFixed(2);
-    const dist = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
 
-    document.getElementById("x").textContent = x;
-    document.getElementById("y").textContent = y;
-    document.getElementById("dist").textContent = dist;
+    // Valeurs Jinja
+    const DIAM = parseFloat("{{ diametre_astrolabe }}");
+
+    // Rayon réel du tympan en cm (ta formule)
+    const R_TYMPAN_CM = (10.5 / 12.35) * (DIAM / 2);
+
+    // Rayon du tympan en SVG → **vraie** valeur utilisée pour l'échelle
+    const R_SVG = {{ fixed_radius_suppl }} * {{ facteur }};
+
+    // Conversion SVG → cm
+    const facteur_cm = R_TYMPAN_CM / R_SVG;
+
+    // Centre du tympan en SVG
+    const cx = 300;
+    const cy = 300;
+
+    // Coordonnées SVG
+    const dx = cursorpt.x - cx;
+    const dy = cursorpt.y - cy;
+    const dist_svg = Math.sqrt(dx*dx + dy*dy);
+
+    // Conversion en cm
+    const x_cm = dx * facteur_cm;
+    const y_cm = dy * facteur_cm;
+    const dist_cm = dist_svg * facteur_cm;
+
+    // Affichage
+    document.getElementById("x").textContent = x_cm.toFixed(2);
+    document.getElementById("y").textContent = y_cm.toFixed(2);
+    document.getElementById("dist").textContent = dist_cm.toFixed(2);
 }
 </script>
+
 {% endif %}
+
+
+<script>
+    const DIAM = parseFloat("{{ diametre_astrolabe }}");
+    const R_TYMPAN = (10.5 / 12.35) * (DIAM / 2);
+    document.getElementById("rayon").textContent = R_TYMPAN.toFixed(3);
+</script>
+
 
 </body>
 </html>

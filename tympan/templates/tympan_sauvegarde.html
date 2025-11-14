@@ -10,21 +10,37 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <style>
+        .container {
+            margin-top: 20px;
+        }
+        
         .chart-wrapper {
-            width: 600px;
-            height: 550px;
+            width: 80vmin;
+            height: 80vmin;
+            max-width: 1000px;
+            max-height: 1000px;
             margin: 0 auto;
             position: relative;
-            border: 1px solid #ccc;
+            outline: 1px solid black;
             background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+
+        .chart-wrapper svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         .button, .button2 {
             cursor: pointer;
             font-size: 20px;
             padding: 8px 16px;
         }
         #info-box {
-            position: absolute;
+            position: fixed;
             top: 10px;
             left: 10px;
             padding: 6px 10px;
@@ -105,10 +121,18 @@
 
             function updateDMSFromLatitude() {
                 const v = parseFloat(latInput.value);
-                if (isNaN(v) || v === 0) {
+                if (isNaN(v)) {
                     degresSelect.value = "";
                     minutesSelect.value = "";
                     secondesSelect.value = "";
+                    return;
+                }
+                // ✅ CORRECTION : Gérer le cas spécial de 0°0'0''
+                if (v === 0) {
+                    degresSelect.value = "0";
+                    minutesSelect.value = "0";
+                    secondesSelect.value = "0";
+                    hideChart();
                     return;
                 }
                 const deg = Math.floor(v);
@@ -160,10 +184,10 @@
             <div class="selection-group">
                 <label for="degres">Degrés:</label>
                 <select name="degres" id="degres">
-                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
-                    <option value="0" {% if not first_visit and latitude and latitude|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    <option value="" {% if first_visit or latitude is none or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude is not none and latitude|int == 0 and reset != '1' %}selected{% endif %}>0</option>
                     {% for i in range(1, 66) %}
-                    <option value="{{ i }}" {% if not first_visit and latitude and latitude|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    <option value="{{ i }}" {% if not first_visit and latitude is not none and latitude|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -171,10 +195,10 @@
             <div class="selection-group">
                 <label for="minutes">Minutes:</label>
                 <select name="minutes" id="minutes">
-                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
-                    <option value="0" {% if not first_visit and latitude and ((latitude|float % 1) * 60)|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    <option value="" {% if first_visit or latitude is none or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60)|int == 0 and reset != '1' %}selected{% endif %}>0</option>
                     {% for i in range(1, 60) %}
-                    <option value="{{ i }}" {% if not first_visit and latitude and ((latitude|float % 1) * 60)|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    <option value="{{ i }}" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60)|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -182,10 +206,10 @@
             <div class="selection-group">
                 <label for="secondes">Secondes:</label>
                 <select name="secondes" id="secondes">
-                    <option value="" {% if first_visit or not latitude or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
-                    <option value="0" {% if not first_visit and latitude and ((latitude|float % 1) * 60 % 1 * 60)|round|int == 0 and reset != '1' %}selected{% endif %}>0</option>
+                    <option value="" {% if first_visit or latitude is none or reset == '1' %}selected{% endif %} disabled>Sélectionner</option>
+                    <option value="0" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60 % 1 * 60)|round|int == 0 and reset != '1' %}selected{% endif %}>0</option>
                     {% for i in range(1, 60) %}
-                    <option value="{{ i }}" {% if not first_visit and latitude and ((latitude|float % 1) * 60 % 1 * 60)|round|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
+                    <option value="{{ i }}" {% if not first_visit and latitude is not none and ((latitude|float % 1) * 60 % 1 * 60)|round|int == i and reset != '1' %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -193,7 +217,7 @@
             <div class="selection-group">
                 <label for="latitudeDecimale">Latitude (degrés décimaux):</label>
                 <input style="width:100px" type="text" id="latitudeDecimale" name="latitudeDecimale" placeholder="Sélectionner" required
-                       value="{% if not first_visit and latitude and reset != '1' %}{{ latitude|float|round(4) }}{% endif %}">
+                       value="{% if not first_visit and latitude is not none and reset != '1' %}{{ latitude|float|round(4) }}{% endif %}">
             </div>
 
             <div class="selection-group">
@@ -206,7 +230,7 @@
     {% if show_chart %}
     {% if fixed_radius_suppl %}
         {% set facteur = 140 / rayon_equateur %}
-        {% set centre_y = 275 %}
+        {% set centre_y = 300 %}
         
         <div id="info-box">
             x: <span id="x">0.00</span><br>
@@ -214,16 +238,206 @@
             distance: <span id="dist">0.00</span>
         </div>
         
-        <div class="chart-wrapper" style="display:block">
-            <svg width="600" height="550" viewBox="0 0 600 550" style="position: absolute; top: 0; left: 0;">
+        <div class="chart-wrapper" data-facteur="{{ facteur }}" data-rayon-equateur="{{ rayon_equateur }}">
+            <svg viewBox="0 0 600 600">
+                {% if latitude == 0 %}
+                <!-- ========================================= -->
+                <!-- RENDU SPÉCIAL POUR LATITUDE 0° (ÉQUATEUR) -->
+                <!-- ========================================= -->
+                
                 <defs>
+                    <mask id="masque-exterieur-equateur">
+                        <rect width="600" height="600" fill="white" />
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="black" />
+                    </mask>
+                    
+                    <mask id="masque-horizon-equateur">
+                        <rect width="600" height="600" fill="black" />
+                        <!-- Montrer seulement au-dessus de l'horizon (y < centre_y) -->
+                        <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
+                    </mask>
+                    
+                    <mask id="masque-interieur-alm70-equateur">
+                        <rect width="600" height="600" fill="black" />
+                        {% for alm in almucantarats %}
+                            {% if alm.hauteur == 70 and alm.type != 'ligne_horizontale' %}
+                                <circle cx="300" cy="{{ centre_y - (alm.cy * facteur) }}" r="{{ alm.rayon * facteur }}" fill="white" />
+                            {% endif %}
+                        {% endfor %}
+                    </mask>
+                    
+                    <mask id="masque-interieur-cancer-equateur">
+                        <rect width="600" height="600" fill="white" />
+                        <!-- Masquer l'intérieur du cercle Cancer dans la moitié inférieure -->
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="black" />
+                        <!-- Remettre la moitié supérieure en blanc -->
+                        <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
+                    </mask>
+                </defs>
+                
+                <!-- Cercle Équateur (bleu) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_equateur * facteur }}" fill="none" stroke="RoyalBlue" stroke-width="2"/>
+                
+                <!-- Cercle Capricorne (rouge) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_capricorne * facteur }}" fill="none" stroke="Red" stroke-width="2"/>
+                
+                <!-- Cercle Écliptique (orange) -->
+                <circle
+                    cx="300"
+                    cy="{{ centre_y - (position_centre_ecliptique * facteur) }}"
+                    r="{{ fixed_radius_ecliptique * facteur }}"
+                    fill="none"
+                    stroke="orange"
+                    stroke-width="2"
+                />
+                
+                <!-- Cercle Cancer (vert) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="none" stroke="Green" stroke-width="2"/>
+                
+                <!-- Cercle extérieur (violet) -->
+                <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="none" stroke="purple" stroke-width="2"/>
+                
+                <!-- Almucantarats -->
+                {% for alm in almucantarats %}
+                    {% if not alm.get('invisible', False) %}
+                        <circle
+                            cx="300"
+                            cy="{{ centre_y - (alm.cy * facteur) }}"
+                            r="{{ alm.rayon * facteur }}"
+                            stroke="{% if alm.hauteur == 45 %}red{% else %}{{ alm.style.stroke }}{% endif %}"
+                            stroke-width="{% if alm.hauteur == 45 %}1.5{% else %}{{ alm.style.stroke_width }}{% endif %}"
+                            stroke-opacity="{{ alm.style.stroke_opacity }}"
+                            fill="{{ alm.style.fill }}"
+                        />
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Horizon (ligne horizontale) -->
+                {% if horizon and horizon.type == 'ligne_horizontale' %}
+                    <line
+                        x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                        y1="{{ centre_y }}"
+                        x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                        y2="{{ centre_y }}"
+                        stroke="{{ horizon.style.stroke }}"
+                        stroke-width="{{ horizon.style.stroke_width }}"
+                        stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                    />
+                {% endif %}
+                
+                <!-- Courbes d'azimut (masquées sous l'horizon) -->
+                <g mask="url(#masque-horizon-equateur)">
+                    {% for courbe in courbes_azimut %}
+                        {% if courbe.get('type') == 'ligne_verticale' %}
+                            <line
+                                x1="{{ 300 + (courbe.x * facteur) }}"
+                                y1="{{ centre_y - (fixed_radius_suppl * facteur) }}"
+                                x2="{{ 300 + (courbe.x * facteur) }}"
+                                y2="{{ centre_y + (fixed_radius_suppl * facteur) }}"
+                                stroke="{{ courbe.color }}"
+                                stroke-width="0.5"
+                                fill="none"/>
+                        {% else %}
+                            <path d="
+                                {% for point in courbe.points %}
+                                    {% if loop.first %}
+                                        M {{ 300 + point[0] * facteur }} {{ centre_y - point[1] * facteur }}
+                                    {% else %}
+                                        L {{ 300 + point[0] * facteur }} {{ centre_y - point[1] * facteur }}
+                                    {% endif %}
+                                {% endfor %}
+                            " stroke="{% if courbe.azimut == 90 or courbe.azimut == 270 %}red{% else %}{{ courbe.color }}{% endif %}"
+                              stroke-width="{% if courbe.azimut == 90 or courbe.azimut == 270 %}1.5{% else %}1{% endif %}"
+                              fill="none"/>
+                        {% endif %}
+                    {% endfor %}
+                </g>
+                
+                <!-- Courbes d'heures inégales pour latitude 0°0'0'' -->
+                {% if points_heures and points_heures.courbes_gauche %}
+                    {% for courbe in points_heures.courbes_gauche %}
+                        <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                              x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                              stroke="black" stroke-width="1"/>
+                    {% endfor %}
+                {% endif %}
+                
+                {% if points_heures and points_heures.courbes_droite %}
+                    {% for courbe in points_heures.courbes_droite %}
+                        <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                              x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                              stroke="black" stroke-width="1"/>
+                    {% endfor %}
+                {% endif %}
+                
+                <!-- Ligne 6e heure (midi) -->
+                <line x1="300" y1="{{ centre_y - (fixed_radius_cancer * facteur) }}"
+                      x2="300" y2="{{ centre_y + (fixed_radius_capricorne * facteur) }}"
+                      stroke="black" stroke-width="1"
+                      mask="url(#masque-interieur-cancer-equateur)"/>
+                
+                <!-- Cercles de crépuscules -->
+                {% for cercle in cercles_crepuscules %}
+                    {% if cercle.get('type') == 'ligne_horizontale' %}
+                        <line
+                            x1="{{ 300 - (fixed_radius_suppl * facteur) }}"
+                            y1="{{ centre_y - (cercle.y_offset * facteur) }}"
+                            x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
+                            y2="{{ centre_y - (cercle.y_offset * facteur) }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° (extrapolé - droite)</title>
+                        </line>
+                    {% else %}
+                        <circle
+                            cx="{{ 300 + (cercle.cx * facteur) }}"
+                            cy="{{ centre_y - (cercle.cy * facteur) }}"
+                            r="{{ cercle.rayon * facteur }}"
+                            fill="{{ cercle.style.fill if cercle.style is defined else 'none' }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° {% if cercle.style is defined and cercle.style.stroke == 'gray' %}(calculé){% elif cercle.style is defined and cercle.style.stroke == 'red' %}(extrapolé){% endif %}</title>
+                        </circle>
+                    {% endif %}
+                {% endfor %}
+                
+                <!-- Masque final : cacher tout en dehors du cercle violet -->
+                <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-equateur)" />
+                
+                <!-- Masque final : cacher l'intérieur de l'almucantarat 70° -->
+                <rect width="600" height="600" fill="white" mask="url(#masque-interieur-alm70-equateur)" />
+                
+                <!-- Étiquette latitude -->
+                {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
+                {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
+                {% set label_y = (capricorne_y + suppl_y) / 2 %}
+                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black">
+                    {{ latitude_dms }}
+                </text>
+                
+                <!-- Zone de capture souris -->
+                <rect x="0" y="0" width="600" height="600" fill="transparent" onmousemove="afficherCoordTympan(event)" />
+                
+                {% else %}
+                <!-- ========================================= -->
+                <!-- RENDU NORMAL POUR LATITUDES > 0° -->
+                <!-- ========================================= -->
+                <defs>
+                    <clipPath id="clip-cercle-suppl">
+                        <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" />
+                    </clipPath>
+                    
                     <mask id="masque-exterieur-suppl">
-                        <rect width="600" height="550" fill="white" />
+                        <rect width="600" height="600" fill="white" />
                         <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="black" />
                     </mask>
 
                     <mask id="masque-interieur-alm80">
-                        <rect width="600" height="550" fill="black" />
+                        <rect width="600" height="600" fill="black" />
                         {% for alm in almucantarats %}
                             {% if alm.hauteur == 70 and alm.type != 'ligne_horizontale' %}
                                 <circle cx="300" cy="{{ centre_y - (alm.cy * facteur) }}" r="{{ alm.rayon * facteur }}" fill="white" />
@@ -232,35 +446,48 @@
                     </mask>
 
                     <mask id="masque-zone-heures-inegales">
-                        <rect width="600" height="550" fill="black" />
+                        <rect width="600" height="600" fill="black" />
                         <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_suppl * facteur }}" fill="white" />
                         <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_cancer * facteur }}" fill="black" />
-                        {% if latitude|float == 0 %}
-                            <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="black" />
-                        {% elif horizon %}
-                            <circle cx="300" cy="{{ centre_y - (horizon.cy * facteur) }}" r="{{ horizon.rayon * facteur }}" fill="black" />
+                        {% if horizon %}
+                            {% if horizon.type == 'ligne_horizontale' %}
+                                <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="black" />
+                            {% else %}
+                                <circle cx="300" cy="{{ centre_y - (horizon.cy * facteur) }}" r="{{ horizon.rayon * facteur }}" fill="black" />
+                            {% endif %}
                         {% endif %}
                     </mask>
 
                     <mask id="masque-heures-inegales-capricorne">
-                        <rect width="600" height="550" fill="black" />
+                        <rect width="600" height="600" fill="black" />
                         <circle cx="300" cy="{{ centre_y }}" r="{{ fixed_radius_capricorne * facteur }}" fill="white" />
                     </mask>
 
                     <mask id="masque-interieur-horizon">
-                        <rect width="600" height="550" fill="black" />
+                        <rect width="600" height="600" fill="black" />
                         {% if horizon %}
                             {% if horizon.type == 'ligne_horizontale' %}
+                                <!-- Horizon est une ligne horizontale - montrer seulement au-dessus -->
                                 <rect x="0" y="0" width="600" height="{{ centre_y }}" fill="white" />
                             {% else %}
-                                <circle cx="300" cy="{{ centre_y - (horizon.cy * facteur) }}" r="{{ horizon.rayon * facteur }}" fill="white" />
+                                {% set horizon_rayon_scaled = horizon.rayon * facteur %}
+                                {% if horizon_rayon_scaled > 1000000 %}
+                                    <!-- Horizon très grand - utiliser un rectangle jusqu'au sommet du cercle -->
+                                    {% set point_haut_astrolabe = horizon.cy - horizon.rayon %}
+                                    {% set point_haut_svg = centre_y - (point_haut_astrolabe * facteur) %}
+                                    <!-- Montrer uniquement AU-DESSUS du point haut de l'horizon -->
+                                    <rect x="0" y="0" width="600" height="{{ point_haut_svg }}" fill="white" />
+                                {% else %}
+                                    <!-- Horizon de taille normale - utiliser le cercle complet -->
+                                    <circle cx="300" cy="{{ centre_y - (horizon.cy * facteur) }}" r="{{ horizon_rayon_scaled }}" fill="white" />
+                                {% endif %}
                             {% endif %}
                         {% endif %}
                     </mask>
                 </defs>
 
                 <!-- Almucantarats -->
-                <g>
+                <g clip-path="url(#clip-cercle-suppl)">
                     {% for alm in almucantarats %}
                         {% if not alm.get('invisible', False) %}
                             {% if alm.type == 'ligne_horizontale' %}
@@ -343,15 +570,37 @@
                             stroke-opacity="{{ horizon.style.stroke_opacity }}"
                         />
                     {% else %}
-                        <circle
-                            cx="300"
-                            cy="{{ centre_y - (horizon.cy * facteur) }}"
-                            r="{{ horizon.rayon * facteur }}"
-                            stroke="{{ horizon.style.stroke }}"
-                            stroke-width="{{ horizon.style.stroke_width }}"
-                            stroke-opacity="{{ horizon.style.stroke_opacity }}"
-                            fill="{{ horizon.style.fill }}"
-                        />
+                        {% set horizon_rayon_svg = horizon.rayon * facteur %}
+                        {% set horizon_cy_svg = horizon.cy * facteur %}
+                        {% set horizon_center_y = centre_y - horizon_cy_svg %}
+                        
+                        {% if horizon_rayon_svg > 1000000 %}
+                            <!-- Horizon très grand - limiter à une valeur renderable -->
+                            <!-- Le point haut du cercle doit rester à centre_y - (cy - rayon) * facteur -->
+                            {% set point_haut_astrolabe = horizon.cy - horizon.rayon %}
+                            {% set point_haut_svg = centre_y - (point_haut_astrolabe * facteur) %}
+                            {% set clamped_radius = 100000 %}
+                            {% set adjusted_center_y = point_haut_svg + clamped_radius %}
+                            <circle
+                                cx="300"
+                                cy="{{ adjusted_center_y }}"
+                                r="{{ clamped_radius }}"
+                                stroke="{{ horizon.style.stroke }}"
+                                stroke-width="{{ horizon.style.stroke_width }}"
+                                stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                                fill="{{ horizon.style.fill }}"
+                            />
+                        {% else %}
+                            <circle
+                                cx="300"
+                                cy="{{ horizon_center_y }}"
+                                r="{{ horizon_rayon_svg }}"
+                                stroke="{{ horizon.style.stroke }}"
+                                stroke-width="{{ horizon.style.stroke_width }}"
+                                stroke-opacity="{{ horizon.style.stroke_opacity }}"
+                                fill="{{ horizon.style.fill }}"
+                            />
+                        {% endif %}
                     {% endif %}
                 {% endif %}
 
@@ -450,22 +699,38 @@
                 <!-- Courbes d'heures inégales à gauche -->
                 {% if points_heures and points_heures.courbes_gauche %}
                     {% for courbe in points_heures.courbes_gauche %}
-                    <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
-                             A {{ courbe.rayon }} {{ courbe.rayon }} 
-                             0 {{ courbe.large_arc }} {{ courbe.sweep }} 
-                             {{ courbe.p3.x }} {{ courbe.p3.y }}" 
-                          stroke="black" stroke-width="1" fill="none"/>
+                        {% if courbe.type == 'ligne_verticale' %}
+                            <!-- Ligne verticale pour latitude 0°0'0'' -->
+                            <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                                  x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                                  stroke="black" stroke-width="1"/>
+                        {% else %}
+                            <!-- Arc normal pour autres latitudes -->
+                            <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
+                                     A {{ courbe.rayon }} {{ courbe.rayon }} 
+                                     0 {{ courbe.large_arc }} {{ courbe.sweep }} 
+                                     {{ courbe.p3.x }} {{ courbe.p3.y }}" 
+                                  stroke="black" stroke-width="1" fill="none"/>
+                        {% endif %}
                     {% endfor %}
                 {% endif %}
                 
                 <!-- Courbes d'heures inégales à droite -->
                 {% if points_heures and points_heures.courbes_droite %}
                     {% for courbe in points_heures.courbes_droite %}
-                    <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
-                             A {{ courbe.rayon }} {{ courbe.rayon }} 
-                             0 {{ courbe.large_arc }} {{ courbe.sweep }} 
-                             {{ courbe.p3.x }} {{ courbe.p3.y }}" 
-                          stroke="black" stroke-width="1" fill="none"/>
+                        {% if courbe.type == 'ligne_verticale' %}
+                            <!-- Ligne verticale pour latitude 0°0'0'' -->
+                            <line x1="{{ courbe.p1.x }}" y1="{{ courbe.p1.y }}"
+                                  x2="{{ courbe.p3.x }}" y2="{{ courbe.p3.y }}"
+                                  stroke="black" stroke-width="1"/>
+                        {% else %}
+                            <!-- Arc normal pour autres latitudes -->
+                            <path d="M {{ courbe.p1.x }} {{ courbe.p1.y }} 
+                                     A {{ courbe.rayon }} {{ courbe.rayon }} 
+                                     0 {{ courbe.large_arc }} {{ courbe.sweep }} 
+                                     {{ courbe.p3.x }} {{ courbe.p3.y }}" 
+                                  stroke="black" stroke-width="1" fill="none"/>
+                        {% endif %}
                     {% endfor %}
                 {% endif %}
 
@@ -490,9 +755,10 @@
                             y1="{{ centre_y - (cercle.y_offset * facteur) }}"
                             x2="{{ 300 + (fixed_radius_suppl * facteur) }}"
                             y2="{{ centre_y - (cercle.y_offset * facteur) }}"
-                            stroke="{{ cercle.style.stroke }}"
-                            stroke-width="{{ cercle.style.stroke_width }}"
-                            stroke-opacity="{{ cercle.style.stroke_opacity }}">
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
                             <title>Crépuscule {{ cercle.hauteur }}° (extrapolé - droite)</title>
                         </line>
                     {% else %}
@@ -500,31 +766,32 @@
                             cx="{{ 300 + (cercle.cx * facteur) }}"
                             cy="{{ centre_y - (cercle.cy * facteur) }}"
                             r="{{ cercle.rayon * facteur }}"
-                            fill="{{ cercle.style.fill }}"
-                            stroke="{{ cercle.style.stroke }}"
-                            stroke-width="{{ cercle.style.stroke_width }}"
-                            stroke-opacity="{{ cercle.style.stroke_opacity }}">
-                            <title>Crépuscule {{ cercle.hauteur }}° {% if cercle.style.stroke == 'gray' %}(calculé){% elif cercle.style.stroke == 'red' %}(extrapolé){% endif %}</title>
+                            fill="{{ cercle.style.fill if cercle.style is defined else 'none' }}"
+                            stroke="{% if cercle.style is defined and cercle.style.stroke == 'gray' %}black{% elif cercle.style is defined %}{{ cercle.style.stroke }}{% else %}black{% endif %}"
+                            stroke-width="{{ cercle.style.stroke_width if cercle.style is defined else '1' }}"
+                            stroke-opacity="{{ cercle.style.stroke_opacity if cercle.style is defined else '1' }}"
+                            stroke-dasharray="8,4">
+                            <title>Crépuscule {{ cercle.hauteur }}° {% if cercle.style is defined and cercle.style.stroke == 'gray' %}(calculé){% elif cercle.style is defined and cercle.style.stroke == 'red' %}(extrapolé){% endif %}</title>
                         </circle>
                     {% endif %}
                 {% endfor %}
 
                 <!-- Masques finaux -->
-                <rect width="600" height="550" fill="white" mask="url(#masque-exterieur-suppl)" />
-                <rect width="600" height="550" fill="white" mask="url(#masque-interieur-alm80)" />
+                <rect width="600" height="600" fill="white" mask="url(#masque-exterieur-suppl)" />
+                <rect width="600" height="600" fill="white" mask="url(#masque-interieur-alm80)" />
+                
+                <!-- Étiquette latitude -->
+                {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
+                {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
+                {% set label_y = (capricorne_y + suppl_y) / 2 %}
+                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black">
+                    {{ latitude_dms }}
+                </text>
                 
                 <!-- Zone de capture souris -->
-                <rect x="0" y="0" width="600" height="550" fill="transparent" onmousemove="afficherCoordTympan(event)" />
+                <rect x="0" y="0" width="600" height="600" fill="transparent" onmousemove="afficherCoordTympan(event)" />
+                {% endif %}
             </svg>
-
-            <!-- Étiquette latitude -->
-            {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
-            {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
-            {% set label_y = (capricorne_y + suppl_y) / 2 %}
-            {% set label_bottom = 550 - label_y + -9 %}
-            <div style="position: absolute; bottom: {{ label_bottom }}px; width: 100%; text-align: center;">
-                {{ latitude_dms }}
-            </div>
         </div>
 
         <div class="echelle-info" style="margin-top: 10px;">
@@ -544,29 +811,42 @@
 
 <a href="{{ url_for('tympan.menu') }}" class="back-button">Retour</a>
 
+{% if show_chart and fixed_radius_suppl %}
 <script>
-    function afficherCoordTympan(evt) {
-        const svg = evt.target.ownerSVGElement;
-        const pt = svg.createSVGPoint();
-        pt.x = evt.clientX;
-        pt.y = evt.clientY;
-        const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
+function afficherCoordTympan(evt) {
+    const svg = evt.target.ownerSVGElement;
+    const pt = svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
 
-        const facteur = {{ facteur }};
-        const centre_y = 275;
-        
-        // Conversion en coordonnées cartésiennes de l'astrolabe
-        const x_reel = (cursorpt.x - 300) / facteur;
-        const y_reel = (centre_y - cursorpt.y) / facteur;
-        
-        const x = x_reel.toFixed(2);
-        const y = y_reel.toFixed(2);
-        const dist = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
+    const chartWrapper = document.querySelector('.chart-wrapper');
+    const facteur = parseFloat(chartWrapper.getAttribute('data-facteur')) || 1;
+    const rayon_equateur = parseFloat(chartWrapper.getAttribute('data-rayon-equateur')) || 6;
+    const centre_y = 300;
+    
+    // Coordonnées en unités de base (rayon_equateur = 6)
+    const x_base = (cursorpt.x - 300) / facteur;
+    const y_base = (centre_y - cursorpt.y) / facteur;
+    
+    // ✅ CONVERSION EN CENTIMÈTRES RÉELS
+    // Le rayon du limbe en unités de base = 10.5
+    // Le rayon du limbe en cm = rayon_equateur × (10.5 / 6)
+    // Donc : facteur_cm = rayon_equateur × (10.5 / 6) / 10.5 = rayon_equateur / 6
+    const facteur_cm = rayon_equateur / 6;
+    const x_reel = x_base * facteur_cm;
+    const y_reel = y_base * facteur_cm;
+    
+    const x = x_reel.toFixed(2);
+    const y = y_reel.toFixed(2);
+    const dist = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
 
-        document.getElementById("x").textContent = x;
-        document.getElementById("y").textContent = y;
-        document.getElementById("dist").textContent = dist;
-    }
+    document.getElementById("x").textContent = x;
+    document.getElementById("y").textContent = y;
+    document.getElementById("dist").textContent = dist;
+}
 </script>
+{% endif %}
+
 </body>
 </html>

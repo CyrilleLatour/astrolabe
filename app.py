@@ -10,14 +10,12 @@ app.secret_key = "superclepourlasession"
 
 # -----------------------------------------------------------------------------
 # Ajoute le dossier des templates d'analemme au loader Jinja
-# (dos/dos_plus/analemme_classique/templates)
 # -----------------------------------------------------------------------------
 from jinja2 import ChoiceLoader, FileSystemLoader
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 analemme_templates = os.path.join(BASE_DIR, "dos", "dos_plus", "analemme_classique", "templates")
 
-# Conserve le loader actuel + ajoute le dossier analemme
 app.jinja_loader = ChoiceLoader([
     app.jinja_loader,
     FileSystemLoader(analemme_templates),
@@ -46,7 +44,6 @@ intersections_bp = None
 dos_bp = None
 araignee_bp = None
 
-# Import direct du blueprint tympan
 from tympan.views import tympan_bp
 print("[OK] Imported tympan.views")
 
@@ -59,7 +56,6 @@ except Exception as e:
     traceback.print_exc()
 
 try:
-    # Blueprint du DOS
     from dos.dos_classique.views2 import dos_bp as _dos_bp
     dos_bp = _dos_bp
     print("[OK] Imported dos.dos_classique.views2")
@@ -138,8 +134,6 @@ def index():
     if request.method == 'POST':
         if 'diametre' in request.form and request.form['diametre']:
             diametre = int(request.form['diametre'])
-            # ✅ CORRECTION : Le diamètre du limbe = rayon_equateur × (2 × 10.5 / 6) = rayon_equateur × 3.5
-            # Donc : rayon_equateur = diametre_astrolabe / 3.5
             rayon_equateur = diametre / 3.5
             session['rayon_equateur'] = rayon_equateur
             session['diametre_astrolabe'] = diametre
@@ -165,6 +159,18 @@ def index():
                          rayon_equateur=rayon_equateur,
                          diametre_astrolabe=diametre,
                          first_visit=first_visit)
+
+# -----------------------------------------------------------------------------
+# Reset complet + vider cache navigateur
+# -----------------------------------------------------------------------------
+@app.route("/reset_all")
+def reset_all():
+    session.clear()
+    response = redirect(url_for('index'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/reset')
 def reset():

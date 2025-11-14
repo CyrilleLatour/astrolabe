@@ -207,7 +207,8 @@ def tympan():
         courbes_azimut=courbes_azimut,
         ligne_suppl_horizon=ligne_suppl_horizon,
         masques=[],
-        points_heures=points_heures
+        points_heures=points_heures,
+        diametre_astrolabe=session.get("diametre_astrolabe")
     )
 
 
