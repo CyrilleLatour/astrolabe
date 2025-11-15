@@ -66,6 +66,23 @@
         distance: <span id="dist">0.00</span>
     </div>
 
+        <div id="rayon-box" style="
+        position: absolute;
+        top: 120px;
+        left: 10px;
+        padding: 6px 10px;
+        border: 1px solid black;
+        background-color: #f0f0f0;
+        font-family: monospace;
+        font-size: 14px;
+        width: 180px;
+        box-sizing: border-box;
+    ">
+        Rayon extérieur &nbsp;&nbsp;&nbsp;= <span id="r_ext">{{ rayon_ext }}</span> cm<br>
+        Rayon intérieur &nbsp;&nbsp;&nbsp;= <span id="r_int">{{ rayon_int }}</span> cm
+    </div>
+
+
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="-13 -13 30 30" width="700" height="700" onmousemove="afficherCoord(event)"> 
 
         <g id="cadre">
@@ -79,10 +96,11 @@
             <circle cx="0" cy="0" r="11.95" stroke="black" stroke-width="0.05" fill="none" />
             <circle cx="0" cy="0" r="11.7"  stroke="black" stroke-width="0.05" fill="none" />
             <circle cx="0" cy="0" r="11.3"  stroke="black" stroke-width="0.05" fill="none" />
-            <circle cx="0" cy="0" r="10.55" stroke="black" stroke-width="0.05" fill="none" />
-            <circle cx="0" cy="0" r="10.35" stroke="black" stroke-width="0.05" fill="none" />
-            <circle cx="0" cy="0" r="10"    stroke="black" stroke-width="0.05" fill="none" />
-            <circle cx="0" cy="0" r="9.45"  stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.62" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.42" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="10.07" stroke="black" stroke-width="0.05" fill="none" />
+            <circle cx="0" cy="0" r="9.52"  stroke="black" stroke-width="0.05" fill="none" />
+
 
             <g stroke="black" stroke-width="0.02">
                 {% for trait in traits_graduation.traits_1_degre %}
@@ -134,8 +152,8 @@
                 ];
 
                 let jour_courant = 9; // position du 31 décembre précédent
-                const r_in = 10.00;
-                const r_out = 10.55;
+                const r_in = 10.05;
+                const r_out = 10.6;
 
                 for (const m of annee) {
                     // Pour chaque mois : jours multiples de 5
@@ -199,8 +217,8 @@
                     let jour_courant = 9; // position du 31 décembre précédent
 
                     // Paramètres géométriques
-                    const r_in = 9.45;
-                    const r_out = 10.55;
+                    const r_in = 9.5;
+                    const r_out = 10.6;
 
                     // Boucle sur les 12 fins de mois
                     for (const m of mois) {
@@ -253,7 +271,7 @@
                 ];
 
                 // Rayon fixe pour tous les mois
-                const r_texte = 9.68;
+                const r_texte = 9.75;
 
                 // Le 31 décembre précédent correspond à jour = 9
                 let jour_courant = 9;
@@ -335,7 +353,7 @@
 
             // === CAPRICORNUS ===
             const contenuCap = document.getElementById("texte_capricornus");
-            const r = 10.72;
+            const r = 10.753;
             const angleStart = 90;
             const angleEnd = 60;
 
@@ -680,6 +698,10 @@
             document.getElementById("dist").textContent = dist;
         }
     </script>
+
+
+
+ 
 
 </body>
 </html>

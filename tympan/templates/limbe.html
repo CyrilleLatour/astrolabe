@@ -79,8 +79,10 @@
     </div>
 
     <div id="rayon-box">
-        Rayon = <span id="rayon">0.0</span> cm
+        Rayon extérieur <span style="display:inline-block; width:20px;"></span>= <span id="rayon-ext">0.0</span> cm<br>
+        Rayon intérieur <span style="display:inline-block; width:20px;"></span>= <span id="rayon-int">0.0</span> cm
     </div>
+
 
     <svg id="svg" xmlns="http://www.w3.org/2000/svg" viewBox="-13 -13 30 30" width="700" height="700" onmousemove="afficherCoord(event)"> 
 
@@ -108,7 +110,16 @@
     <script>
         const DIAMETRE_ASTROLABE = parseFloat("{{ diametre_astrolabe if diametre_astrolabe else 24.7 }}");
         const RAYON_CM = DIAMETRE_ASTROLABE / 2;
-        document.getElementById("rayon").textContent = RAYON_CM.toFixed(1);
+
+        // Conversion cm / SVG
+        const facteur_cm = RAYON_CM / 12.35;
+
+        // Rayon extérieur (toujours 12.35 dans ton limbe)
+        document.getElementById("rayon-ext").textContent = (12.35 * facteur_cm).toFixed(2);
+
+        // Rayon intérieur (toujours 10.57 dans ton limbe)
+        document.getElementById("rayon-int").textContent = (10.57 * facteur_cm).toFixed(2);
+
 
         window.onload = function() {
             const svgNS = "http://www.w3.org/2000/svg";

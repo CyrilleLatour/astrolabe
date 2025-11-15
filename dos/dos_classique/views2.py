@@ -5,24 +5,11 @@ import math
 from jinja2 import ChoiceLoader, FileSystemLoader
 
 # ===== Blueprint =====
-# On garde un blueprint unique "dos"
-# (le chemin exact du template_folder n'a plus d'importance, on va étendre le loader Jinja juste après)
 template_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 dos_bp = Blueprint('dos', __name__, template_folder=template_path)
 
-# ===== Hook: ajouter tous les répertoires de templates utiles au loader Jinja =====
+# ===== Hook loader =====
 def _ensure_dos_template_paths():
-    """
-    Ajoute (une seule fois) ces répertoires au loader Jinja :
-      - dos/templates
-      - dos/dos_classique/templates
-      - dos/dos_plus/templates
-    Ainsi, on peut appeler:
-      render_template("dos_menu.html")
-      render_template("dos.html")
-      render_template("analemme_classique.html")
-    sans préfixes de sous-dossiers.
-    """
     if getattr(current_app, "_dos_paths_added", False):
         return
 
@@ -48,7 +35,7 @@ def _setup_loader_once():
     _ensure_dos_template_paths()
 
 
-# ====== Blocs utilitaires de génération (inchangés) ======
+# ====== Générateurs (inchangés) ======
 def generer_diagonales_correction_direct():
     def generer_diagonales_gauche_25():
         x1, x2 = -6.68216, -6.4125
@@ -175,8 +162,8 @@ def generer_subdivisions_annee_direct():
         for i in range(365):
             angle_deg = i * angle_jour
             angle_rad = (angle_deg - 90) * math.pi / 180
-            x1, y1 = 10.55 * math.cos(angle_rad), 10.55 * math.sin(angle_rad)
-            x2, y2 = 10.35 * math.cos(angle_rad), 10.35 * math.sin(angle_rad)
+            x1, y1 = 10.62 * math.cos(angle_rad), 10.62 * math.sin(angle_rad)
+            x2, y2 = 10.42 * math.cos(angle_rad), 10.42 * math.sin(angle_rad)
             lignes.append({'x1': round(x1, 3), 'y1': round(y1, 3), 'x2': round(x2, 3), 'y2': round(y2, 3), 'stroke': 'black', 'stroke_width': 0.02})
         return lignes
 
@@ -221,7 +208,7 @@ def generer_subdivisions_annee_direct():
 def generer_subdivisions_internes_direct():
     def generer_subdivisions_internes_gauche_1_degre():
         lignes = []
-        pas_angle = 90 / 72  # 1.25°
+        pas_angle = 90 / 72
         angle_debut = 90 + pas_angle
         nb_subdivisions = int((180 - angle_debut) / pas_angle) + 1
         for i in range(nb_subdivisions):
@@ -246,7 +233,7 @@ def generer_subdivisions_internes_direct():
 
     def generer_subdivisions_internes_gauche_5_degres():
         lignes = []
-        pas_angle = 90 / 24  # 3.75°
+        pas_angle = 90 / 24
         angle_fin = 180 - pas_angle
         nb_subdivisions = int((angle_fin - 90) / pas_angle) + 1
         for i in range(nb_subdivisions):
@@ -311,15 +298,10 @@ def generer_subdivisions_internes_direct():
     }
 
 def generer_chiffres_romains_direct():
-    """Chiffres romains I à XII en haut du cercle (après inversion Y),
-    avec I à gauche et XII à droite, correctement orientés."""
-
     chiffres_romains = ["I", "II", "III", "IV", "V", "VI",
                         "VII", "VIII", "IX", "X", "XI", "XII"]
 
-    # Angles dans la moitié inférieure → apparaissent en haut après inversion
     angles_speciaux = [195 + 15 * i for i in range(12)]
-
     rayon_texte = 10.93
     decalage = -2  
 
@@ -327,11 +309,8 @@ def generer_chiffres_romains_direct():
 
     for i, angle_deg in enumerate(angles_speciaux):
         angle_rad = math.radians(angle_deg + decalage)
-
         x = rayon_texte * math.cos(angle_rad)
         y = rayon_texte * math.sin(angle_rad)
-
-        # ✅ Ajout de +180° pour retourner les textes à l'endroit
         rotation = angle_deg + decalage - 90 + 180
 
         textes.append({
@@ -374,7 +353,7 @@ def generer_quarts_cercle_direct():
 
     return {'arcs': arcs, 'points': points, 'points_cercle_855': points_cercle_855}
 
-# ===== Construit le contexte complet attendu par dos.html =====
+# ===== Contexte =====
 def _contexte_dos():
     from .traits_graduation.traits_graduation import generer_tous_traits_graduation
     from .cadre_correction.cadre_correction import generer_tous_cadres_correction
@@ -405,7 +384,6 @@ def _contexte_dos():
         graphe_equation_temps=graphe_equation_temps,
     )
 
-
 def _contexte_anneau_ext():
     from .traits_graduation.traits_graduation import generer_tous_traits_graduation
     subdivisions_annee = generer_subdivisions_annee_direct()
@@ -415,39 +393,53 @@ def _contexte_anneau_ext():
         subdivisions_annee=subdivisions_annee,
     )
 
+
 # =========================
 # Routes
 # =========================
 
-# /dos/ -> dos classique par défaut
 @dos_bp.route("/", strict_slashes=False)
 def show_dos():
     ctx = _contexte_dos()
-    # Grâce au loader, 'dos.html' est trouvé dans dos/dos_classique/templates/
     return render_template("dos.html", **ctx)
 
-# Menu choix
 @dos_bp.route("/dos_menu/", strict_slashes=False)
 def dos_menu():
-    # Trouvé dans dos/templates/
     return render_template("dos_menu.html")
 
-# Dos classique explicite
 @dos_bp.route("/dos_classique/", strict_slashes=False)
 def dos_classique():
     ctx = _contexte_dos()
     return render_template("dos.html", **ctx)
 
-# Dos plus (template statique)
 @dos_bp.route("/dos_plus/", strict_slashes=False)
 def dos_plus():
-    # Trouvé dans dos/dos_plus/templates/
     return render_template("analemme_classique.html")
 
 
-# Anneau extérieur (nouveau template)
+
+
+# =============================================================
+# 🚀 R A Y O N S   D Y N A M I Q U E S   D E   L ’ A N N E A U  E X T É R I E U R
+# =============================================================
 @dos_bp.route("/anneau_ext/", strict_slashes=False)
 def anneau_ext():
-    ctx = _contexte_anneau_ext()
-    return render_template("anneau_ext.html", **ctx)
+    from flask import request
 
+    # --- lire la valeur du diamètre envoyée depuis index.html ---
+    diametre_str = request.args.get("diametre", "25")
+    diametre = float(diametre_str)
+
+    # --- calculs demandés ---
+    rayon_ext = diametre / 2
+    rayon_int = (9.52 / 12.35) * rayon_ext
+
+    # --- contexte graphique existant (inchangé) ---
+    ctx = _contexte_anneau_ext()
+
+    # --- injection dans le template ---
+    ctx["rayon_ext"] = round(rayon_ext, 3)
+    ctx["rayon_int"] = round(rayon_int, 3)
+    ctx["diametre"] = diametre
+
+    return render_template("anneau_ext.html", **ctx)

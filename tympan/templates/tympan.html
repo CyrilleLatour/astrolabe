@@ -809,7 +809,7 @@
 <rect x="0" y="0" width="600" height="600"
       fill="transparent"
       pointer-events="all"
-      onmousemove="afficherCoordTympan(evt)" />
+      onmousemove="afficherCoordTympan(event)" />
 {% endif %}
 
         </div>
@@ -833,19 +833,19 @@
 
 {% if show_chart and fixed_radius_suppl %}
 <script>
-function afficherCoordTympan(evt) {
+function afficherCoordTympan(event) {
 
-    const svg = evt.target.ownerSVGElement;
+    const svg = event.target.ownerSVGElement;
     const pt = svg.createSVGPoint();
-    pt.x = evt.clientX;
-    pt.y = evt.clientY;
+    pt.x = event.clientX;
+    pt.y = event.clientY;
     const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
 
     const chartWrapper = document.querySelector('.chart-wrapper');
     const facteur = parseFloat(chartWrapper.getAttribute('data-facteur')) || 1;
 
     // Valeurs Jinja
-    const DIAM = parseFloat("{{ diametre_astrolabe }}");
+    const DIAM = parseFloat("{{ diametre_astrolabe }}") || 0;
 
     // Rayon réel du tympan en cm (ta formule)
     const R_TYMPAN_CM = (10.5 / 12.35) * (DIAM / 2);
@@ -881,7 +881,7 @@ function afficherCoordTympan(evt) {
 
 
 <script>
-    const DIAM = parseFloat("{{ diametre_astrolabe }}");
+    const DIAM = parseFloat("{{ diametre_astrolabe }}") || 0;
     const R_TYMPAN = (10.5 / 12.35) * (DIAM / 2);
     document.getElementById("rayon").textContent = R_TYMPAN.toFixed(3);
 </script>

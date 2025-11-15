@@ -134,7 +134,7 @@ def tympan():
     cercles_crepuscules = data_crep.get("cercles_crepuscules", [])
     cercles_solstices = data_crep.get("cercles_solstices", [])
 
-    # AJOUTER LES CERCLES CALCULÉS Z=-6, -12, -18 EN NOIR
+    # AJOUT CERCLES Z = -6, -12, -18 en noir
     for Z in [-6, -12, -18]:
         cercle = alm.calculer_almucantarat(Z)
         if cercle and cercle.get("type") != "ligne_horizontale":
@@ -236,15 +236,16 @@ def limbe():
 @tympan_bp.route('/index', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        rayon_equateur = request.form.get('rayon')
-        if rayon_equateur:
+        diametre = request.form.get('diametre')
+        if diametre:
             try:
-                rayon_equateur = float(rayon_equateur)
-                session['rayon_equateur'] = rayon_equateur
+                diametre = float(diametre)
+                session['diametre_astrolabe'] = diametre
                 session['first_visit_tympan'] = True
                 return redirect(url_for('tympan.tympan'))
             except ValueError:
                 pass
+
     return render_template('index.html')
 
 
