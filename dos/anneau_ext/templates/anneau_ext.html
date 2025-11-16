@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -678,6 +677,12 @@
     <a href="{{ url_for('dos.dos_menu') }}" class="back-button">Retour</a>
 
     <script>
+        const DIAMETRE_ASTROLABE = parseFloat("{{ diametre_astrolabe if diametre_astrolabe else 25 }}");
+        const RAYON_CM = DIAMETRE_ASTROLABE / 2;
+
+        // Conversion SVG → cm
+        const facteur_cm = RAYON_CM / 12.35;
+
         function afficherCoord(evt) {
             const svg = evt.target.ownerSVGElement || evt.target;
             const pt = svg.createSVGPoint();
@@ -686,22 +691,18 @@
 
             const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
             const scale = 0.9;
-            const x_corr = cursorpt.x / scale;
-            const y_corr = cursorpt.y / scale;
+            const x_base = cursorpt.x / scale;
+            const y_base = cursorpt.y / scale;
 
-            const x = x_corr.toFixed(2);
-            const y = (-y_corr).toFixed(2);
-            const dist = Math.sqrt(x_corr**2 + y_corr**2).toFixed(2);
+            // Conversion en centimètres
+            const x_reel = x_base * facteur_cm;
+            const y_reel = y_base * facteur_cm;
 
-            document.getElementById("x").textContent = x;
-            document.getElementById("y").textContent = y;
-            document.getElementById("dist").textContent = dist;
+            document.getElementById("x").textContent = x_reel.toFixed(2);
+            document.getElementById("y").textContent = (-y_reel).toFixed(2);
+            document.getElementById("dist").textContent = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
         }
     </script>
-
-
-
- 
 
 </body>
 </html>

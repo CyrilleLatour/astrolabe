@@ -424,15 +424,16 @@ def dos_plus():
 # =============================================================
 @dos_bp.route("/anneau_ext/", strict_slashes=False)
 def anneau_ext():
-    from flask import request
+    from flask import session
 
-    # --- lire la valeur du diamètre envoyée depuis index.html ---
-    diametre_str = request.args.get("diametre", "25")
-    diametre = float(diametre_str)
+    # --- lire la valeur du diamètre depuis la session ---
+    diametre = session.get('diametre_astrolabe', 25)
 
     # --- calculs demandés ---
+    # Rayon externe = rayon de l'astrolabe = diamètre / 2
     rayon_ext = diametre / 2
-    rayon_int = (9.52 / 12.35) * rayon_ext
+    # Rayon interne = (9.52 / 12.35) * rayon de l'astrolabe
+    rayon_int = (9.52 / 12.35) * (diametre / 2)
 
     # --- contexte graphique existant (inchangé) ---
     ctx = _contexte_anneau_ext()
@@ -440,6 +441,6 @@ def anneau_ext():
     # --- injection dans le template ---
     ctx["rayon_ext"] = round(rayon_ext, 3)
     ctx["rayon_int"] = round(rayon_int, 3)
-    ctx["diametre"] = diametre
+    ctx["diametre_astrolabe"] = diametre
 
     return render_template("anneau_ext.html", **ctx)
