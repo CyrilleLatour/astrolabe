@@ -36,6 +36,19 @@
       box-sizing: border-box;
     }
 
+    #rayon-box {
+      position: absolute;
+      top: 120px;
+      left: 10px;
+      padding: 6px 10px;
+      border: 1px solid black;
+      background-color: #f0f0f0;
+      font-family: monospace;
+      font-size: 14px;
+      width: 160px;
+      box-sizing: border-box;
+    }
+
     .cadre-analemme {
       background: white;
       border: 2px solid black;
@@ -85,6 +98,10 @@
     x: <span id="x">0.00</span><br>
     y: <span id="y">0.00</span><br>
     distance: <span id="dist">0.00</span>
+  </div>
+
+  <div id="rayon-box">
+    Rayon du dos = <span id="rayon">0.0</span> cm
   </div>
 
   <!-- ANALEMME -->
@@ -890,6 +907,16 @@ svg.appendChild(textSohCahToa);
 </script>
 
 <script>
+    const DIAMETRE_ASTROLABE = parseFloat("{{ diametre_astrolabe }}") || 25;
+    const R_DOS_CM = (9.45 / 12.35) * (DIAMETRE_ASTROLABE / 2);
+    
+    // Le SVG a un viewBox de "-10.92 -10.92 21.84 21.84"
+    // Le cercle principal a r=9.45 en SVG
+    const R_SVG = 9.45;
+    
+    // Facteur de conversion SVG → cm
+    const facteur_cm = R_DOS_CM / R_SVG;
+    
     function afficherCoord(evt) {
         const svg = evt.target.ownerSVGElement;
         const pt = svg.createSVGPoint();
@@ -897,18 +924,25 @@ svg.appendChild(textSohCahToa);
         pt.y = evt.clientY;
         const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
 
-        const x = cursorpt.x.toFixed(2);
-        const y = (-cursorpt.y).toFixed(2);
-        const dist = Math.sqrt(cursorpt.x**2 + cursorpt.y**2).toFixed(2);
+        // Conversion en cm
+        const x_cm = cursorpt.x * facteur_cm;
+        const y_cm = -cursorpt.y * facteur_cm;
+        const dist_cm = Math.sqrt(cursorpt.x**2 + cursorpt.y**2) * facteur_cm;
 
-        document.getElementById("x").textContent = x;
-        document.getElementById("y").textContent = y;
-        document.getElementById("dist").textContent = dist;
+        document.getElementById("x").textContent = x_cm.toFixed(2);
+        document.getElementById("y").textContent = y_cm.toFixed(2);
+        document.getElementById("dist").textContent = dist_cm.toFixed(2);
     }
 </script>
 
 
+<script>
+    const DIAM = parseFloat("{{ diametre_astrolabe }}") || 0;
+    const R_DOS = (9.45 / 12.35) * (DIAM / 2);
+    document.getElementById("rayon").textContent = R_DOS.toFixed(3);
+</script>
+
 <button class="back-button" onclick="window.history.back()">Retour</button>
 
 </body>
-</html>  
+</html>

@@ -32,6 +32,18 @@
             width: 160px;
             box-sizing: border-box;
         }
+        #rayon-box {
+            position: absolute;
+            top: 120px;
+            left: 10px;
+            padding: 6px 10px;
+            border: 1px solid black;
+            background-color: #f0f0f0;
+            font-family: monospace;
+            font-size: 14px;
+            width: 160px;
+            box-sizing: border-box;
+        }
         svg {
             display: block;
             width: 100vw;
@@ -64,6 +76,9 @@
         x: <span id="x">0.00</span><br>
         y: <span id="y">0.00</span><br>
         distance: <span id="dist">0.00</span>
+    </div>
+    <div id="rayon-box">
+        Rayon du dos = <span id="rayon">0.0</span> cm
     </div>
     <svg viewBox="-15 -15 30 30" xmlns="http://www.w3.org/2000/svg">
 
@@ -519,18 +534,32 @@ L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
         <rect x="-15" y="-15" width="30" height="30" fill="transparent" onmousemove="afficherCoord(event)" />
     </svg>
     <script>
+        const DIAMETRE_ASTROLABE = parseFloat("{{ diametre_astrolabe }}") || 25;
+        const R_DOS_CM = (9.45 / 12.35) * (DIAMETRE_ASTROLABE / 2);
+        
+        // Le SVG a un viewBox de "-15 -15 30 30" et un scale(1.2) sur le contenu
+        // Le cercle principal a r=9.45 en SVG (avant scale)
+        // Après scale(1.2), le rayon effectif est 9.45 * 1.2 = 11.34
+        const R_SVG = 9.45 * 1.2;
+        
+        // Facteur de conversion SVG → cm
+        const facteur_cm = R_DOS_CM / R_SVG;
+        
         function afficherCoord(evt) {
             const svg = evt.target.ownerSVGElement;
             const pt = svg.createSVGPoint();
             pt.x = evt.clientX;
             pt.y = evt.clientY;
             const cursorpt = pt.matrixTransform(svg.getScreenCTM().inverse());
-            const x = cursorpt.x.toFixed(2);
-            const y = -cursorpt.y.toFixed(2);
-            const dist = Math.sqrt(cursorpt.x**2 + cursorpt.y**2).toFixed(2);
-            document.getElementById("x").textContent = x;
-            document.getElementById("y").textContent = y;
-            document.getElementById("dist").textContent = dist;
+            
+            // Conversion en cm
+            const x_cm = cursorpt.x * facteur_cm;
+            const y_cm = -cursorpt.y * facteur_cm;
+            const dist_cm = Math.sqrt(cursorpt.x**2 + cursorpt.y**2) * facteur_cm;
+            
+            document.getElementById("x").textContent = x_cm.toFixed(2);
+            document.getElementById("y").textContent = y_cm.toFixed(2);
+            document.getElementById("dist").textContent = dist_cm.toFixed(2);
         }
     </script>
 
@@ -576,6 +605,12 @@ L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
 
     
     
+<script>
+    const DIAM = parseFloat("{{ diametre_astrolabe }}") || 0;
+    const R_DOS = (9.45 / 12.35) * (DIAM / 2);
+    document.getElementById("rayon").textContent = R_DOS.toFixed(3);
+</script>
+
     <a href="#" class="back-button" onclick="window.history.back(); return false;">Retour</a>
 
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, session
 
 # IMPORTANT :
 # - On garde le nom d'endpoint "araignee" (pour ne rien casser dans url_for('araignee...'))
@@ -19,7 +19,8 @@ def menu():
 # ================================================================
 @araignee_bp.route('/araignee_nord', methods=['GET'])
 def araignee_nord():
-    return render_template('araignee_nord.html')
+    diametre_astrolabe = session.get('diametre_astrolabe', 25)
+    return render_template('araignee_nord.html', diametre_astrolabe=diametre_astrolabe)
 
 
 # ================================================================
@@ -27,7 +28,8 @@ def araignee_nord():
 # ================================================================
 @araignee_bp.route('/araignee_sud', methods=['GET'])
 def araignee_sud():
-    return render_template('araignee_sud.html')
+    diametre_astrolabe = session.get('diametre_astrolabe', 25)
+    return render_template('araignee_sud.html', diametre_astrolabe=diametre_astrolabe)
 
 
 # ================================================================

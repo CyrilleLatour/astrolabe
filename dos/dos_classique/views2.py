@@ -355,6 +355,7 @@ def generer_quarts_cercle_direct():
 
 # ===== Contexte =====
 def _contexte_dos():
+    from flask import session
     from .traits_graduation.traits_graduation import generer_tous_traits_graduation
     from .cadre_correction.cadre_correction import generer_tous_cadres_correction
     from .arcs_gauche.arcs_gauche import generer_arcs_gauche
@@ -370,6 +371,9 @@ def _contexte_dos():
     quarts_cercle = generer_quarts_cercle_direct()
     arcs_gauche = generer_arcs_gauche()
     graphe_equation_temps = generer_graphique_equation_temps()
+    
+    # Récupérer le diamètre depuis la session
+    diametre_astrolabe = session.get('diametre_astrolabe', 25)
 
     return dict(
         traits_graduation=traits_graduation,
@@ -382,6 +386,7 @@ def _contexte_dos():
         quarts_cercle=quarts_cercle,
         arcs_gauche=arcs_gauche,
         graphe_equation_temps=graphe_equation_temps,
+        diametre_astrolabe=diametre_astrolabe,
     )
 
 def _contexte_anneau_ext():
@@ -414,7 +419,9 @@ def dos_classique():
 
 @dos_bp.route("/dos_plus/", strict_slashes=False)
 def dos_plus():
-    return render_template("analemme_classique.html")
+    from flask import session
+    diametre_astrolabe = session.get('diametre_astrolabe', 25)
+    return render_template("analemme_classique.html", diametre_astrolabe=diametre_astrolabe)
 
 
 
