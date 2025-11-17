@@ -54,6 +54,125 @@
             width: 160px;
             box-sizing: border-box;
         }
+
+        #zodiac-control {
+            /* 🎯 Personnalisation de la position - modifiez ces valeurs */
+            --position-top: 60px;      /* Distance depuis le haut */
+            --position-right: 200px;    /* Distance depuis la droite */
+            /* Vous pouvez aussi utiliser bottom et left si vous préférez */
+            
+            position: absolute;
+            top: var(--position-top);
+            right: var(--position-right);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #zodiac-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #zodiac-toggle.active {
+            background-color: blue;
+        }
+
+        #zodiac-toggle::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #zodiac-toggle.active::after {
+            background-color: white;
+        }
+
+        .zodiac-text {
+            transition: opacity 0.3s;
+        }
+
+        .zodiac-text.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #month-control {
+            /* 🎯 Personnalisation de la position - modifiez ces valeurs */
+            --position-top: 120px;     /* Distance depuis le haut (juste en-dessous du premier) */
+            --position-right: 207px;   /* Distance depuis la droite (aligné avec le premier) */
+            
+            position: absolute;
+            top: var(--position-top);
+            right: var(--position-right);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #month-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #month-toggle.active {
+            background-color: blue;
+        }
+
+        #month-toggle::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #month-toggle.active::after {
+            background-color: white;
+        }
+
+        .month-number {
+            transition: opacity 0.3s;
+        }
+
+        .month-number.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -63,6 +182,16 @@
         x: <span id="x">0.00</span><br>
         y: <span id="y">0.00</span><br>
         distance: <span id="dist">0.00</span>
+    </div>
+
+    <div id="zodiac-control">
+        <div id="zodiac-toggle" class="active" onclick="toggleZodiac()"></div>
+        <span>Signes du zodiaque</span>
+    </div>
+
+    <div id="month-control">
+        <div id="month-toggle" class="active" onclick="toggleMonths()"></div>
+        <span>Numéros des mois</span>
     </div>
 
         <div id="rayon-box" style="
@@ -297,6 +426,7 @@
                     text.setAttribute("text-anchor", "middle");
                     text.setAttribute("dominant-baseline", "middle");
                     text.setAttribute("transform", `rotate(${angle}, ${x.toFixed(3)}, ${y.toFixed(3)})`);
+                    text.setAttribute("class", "month-number");
                     text.textContent = String(i + 1).padStart(2, "0");
 
                     contenu.appendChild(text);
@@ -376,6 +506,7 @@
             textCap.setAttribute("fill", "black");
             textCap.setAttribute("font-size", "0.6");
             textCap.setAttribute("font-family", "century gothic, arial, calibri");
+            textCap.setAttribute("class", "zodiac-text");
 
             const textPathCap = document.createElementNS(svgNS, "textPath");
             textPathCap.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_capricornus");
@@ -401,6 +532,7 @@
             textAqua.setAttribute("fill", "black");
             textAqua.setAttribute("font-size", "0.6");
             textAqua.setAttribute("font-family", "century gothic, arial, calibri");
+            textAqua.setAttribute("class", "zodiac-text");
 
             const textPathAqua = document.createElementNS(svgNS, "textPath");
             textPathAqua.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_aquarius");
@@ -426,6 +558,7 @@
             textPisces.setAttribute("fill", "black");
             textPisces.setAttribute("font-size", "0.6");
             textPisces.setAttribute("font-family", "century gothic, arial, calibri");
+            textPisces.setAttribute("class", "zodiac-text");
 
             const textPathPisces = document.createElementNS(svgNS, "textPath");
             textPathPisces.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_pisces");
@@ -451,6 +584,7 @@
             textAries.setAttribute("fill", "black");
             textAries.setAttribute("font-size", "0.6");
             textAries.setAttribute("font-family", "century gothic, arial, calibri");
+            textAries.setAttribute("class", "zodiac-text");
 
             const textPathAries = document.createElementNS(svgNS, "textPath");
             textPathAries.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_aries");
@@ -476,6 +610,7 @@
             textTaurus.setAttribute("fill", "black");
             textTaurus.setAttribute("font-size", "0.6");
             textTaurus.setAttribute("font-family", "century gothic, arial, calibri");
+            textTaurus.setAttribute("class", "zodiac-text");
 
             const textPathTaurus = document.createElementNS(svgNS, "textPath");
             textPathTaurus.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_taurus");
@@ -501,6 +636,7 @@
             textGem.setAttribute("fill", "black");
             textGem.setAttribute("font-size", "0.6");
             textGem.setAttribute("font-family", "century gothic, arial, calibri");
+            textGem.setAttribute("class", "zodiac-text");
 
             const textPathGem = document.createElementNS(svgNS, "textPath");
             textPathGem.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_gemini");
@@ -526,6 +662,7 @@
             textCan.setAttribute("fill", "black");
             textCan.setAttribute("font-size", "0.6");
             textCan.setAttribute("font-family", "century gothic, arial, calibri");
+            textCan.setAttribute("class", "zodiac-text");
 
             const textPathCan = document.createElementNS(svgNS, "textPath");
             textPathCan.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_cancer");
@@ -551,6 +688,7 @@
             textLeo.setAttribute("fill", "black");
             textLeo.setAttribute("font-size", "0.6");
             textLeo.setAttribute("font-family", "century gothic, arial, calibri");
+            textLeo.setAttribute("class", "zodiac-text");
 
             const textPathLeo = document.createElementNS(svgNS, "textPath");
             textPathLeo.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_leo");
@@ -576,6 +714,7 @@
             textVir.setAttribute("fill", "black");
             textVir.setAttribute("font-size", "0.6");
             textVir.setAttribute("font-family", "century gothic, arial, calibri");
+            textVir.setAttribute("class", "zodiac-text");
 
             const textPathVir = document.createElementNS(svgNS, "textPath");
             textPathVir.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_virgo");
@@ -601,6 +740,7 @@
             textLib.setAttribute("fill", "black");
             textLib.setAttribute("font-size", "0.6");
             textLib.setAttribute("font-family", "century gothic, arial, calibri");
+            textLib.setAttribute("class", "zodiac-text");
 
             const textPathLib = document.createElementNS(svgNS, "textPath");
             textPathLib.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_libra");
@@ -626,6 +766,7 @@
             textScor.setAttribute("fill", "black");
             textScor.setAttribute("font-size", "0.6");
             textScor.setAttribute("font-family", "century gothic, arial, caScorri");
+            textScor.setAttribute("class", "zodiac-text");
 
             const textPathScor = document.createElementNS(svgNS, "textPath");
             textPathScor.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_scorpius");
@@ -651,6 +792,7 @@
             textSagit.setAttribute("fill", "black");
             textSagit.setAttribute("font-size", "0.6");
             textSagit.setAttribute("font-family", "century gothic, arial, caSagitri");
+            textSagit.setAttribute("class", "zodiac-text");
 
             const textPathSagit = document.createElementNS(svgNS, "textPath");
             textPathSagit.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#arc_sagittarius");
@@ -701,6 +843,30 @@
             document.getElementById("x").textContent = x_reel.toFixed(2);
             document.getElementById("y").textContent = (-y_reel).toFixed(2);
             document.getElementById("dist").textContent = Math.sqrt(x_reel**2 + y_reel**2).toFixed(2);
+        }
+    </script>
+
+    <script>
+        function toggleZodiac() {
+            const toggle = document.getElementById('zodiac-toggle');
+            const zodiacTexts = document.querySelectorAll('.zodiac-text');
+            
+            toggle.classList.toggle('active');
+            
+            zodiacTexts.forEach(text => {
+                text.classList.toggle('hidden');
+            });
+        }
+
+        function toggleMonths() {
+            const toggle = document.getElementById('month-toggle');
+            const monthNumbers = document.querySelectorAll('.month-number');
+            
+            toggle.classList.toggle('active');
+            
+            monthNumbers.forEach(text => {
+                text.classList.toggle('hidden');
+            });
         }
     </script>
 
