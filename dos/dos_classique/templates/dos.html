@@ -68,10 +68,305 @@
             color: white;
             background-color: red;
         }
+
+        #heures-inegales-control {
+            position: absolute;
+            top: 70px;
+            right: 120px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #heures-inegales-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #heures-inegales-toggle.active {
+            background-color: blue;
+        }
+
+        #heures-inegales-toggle::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #heures-inegales-toggle.active::after {
+            background-color: white;
+        }
+
+        .numeros-heures {
+            transition: opacity 0.3s;
+        }
+
+        .numeros-heures.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #degres-control {
+            position: absolute;
+            top: 130px;
+            right: 173px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #degres-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #degres-toggle.active {
+            background-color: blue;
+        }
+
+        #degres-toggle::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #degres-toggle.active::after {
+            background-color: white;
+        }
+
+        .indications-degres {
+            transition: opacity 0.3s;
+        }
+
+        .indications-degres.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #sinus-cosinus-control {
+            position: absolute;
+            top: 190px;
+            right: 141px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #sinus-cosinus-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #sinus-cosinus-toggle.active {
+            background-color: blue;
+        }
+
+        #sinus-cosinus-toggle::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #sinus-cosinus-toggle.active::after {
+            background-color: white;
+        }
+
+        .etiquettes-sinus-cosinus {
+            transition: opacity 0.3s;
+        }
+
+        .etiquettes-sinus-cosinus.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #minutes-control {
+            position: absolute;
+            top: 250px;
+            right: 113px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #minutes-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #minutes-toggle.active {
+            background-color: blue;
+        }
+
+        #minutes-toggle::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #minutes-toggle.active::after {
+            background-color: white;
+        }
+
+        .minutes-equation-temps {
+            transition: opacity 0.3s;
+        }
+
+        .minutes-equation-temps.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #mois-control {
+            position: absolute;
+            top: 310px;
+            right: 184px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid black;
+            background-color: #f9f9f9;
+            font-family: century gothic, arial, calibri;
+            font-size: 14px;
+        }
+
+        #mois-toggle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 50%;
+            background-color: white;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        #mois-toggle.active {
+            background-color: blue;
+        }
+
+        #mois-toggle::after {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #333;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: background-color 0.3s;
+        }
+
+        #mois-toggle.active::after {
+            background-color: white;
+        }
+
+        .etiquettes-mois {
+            transition: opacity 0.3s;
+        }
+
+        .etiquettes-mois.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
     <h1>Dos de l'astrolabe (I)</h1>
+    <div id="heures-inegales-control">
+        <div id="heures-inegales-toggle" class="active" onclick="toggleHeuresInegales()"></div>
+        <span>Numéros des heures inégales</span>
+    </div>
+    <div id="degres-control">
+        <div id="degres-toggle" class="active" onclick="toggleDegres()"></div>
+        <span>Indication des degrés</span>
+    </div>
+    <div id="sinus-cosinus-control">
+        <div id="sinus-cosinus-toggle" class="active" onclick="toggleSinusCosinus()"></div>
+        <span>Étiquettes sinus et cosinus</span>
+    </div>
+    <div id="minutes-control">
+        <div id="minutes-toggle" class="active" onclick="toggleMinutes()"></div>
+        <span>Minutes de l'équation du temps</span>
+    </div>
+    <div id="mois-control">
+        <div id="mois-toggle" class="active" onclick="toggleMois()"></div>
+        <span>Étiquettes des mois</span>
+    </div>
     <div id="info-box">
         x: <span id="x">0.00</span><br>
         y: <span id="y">0.00</span><br>
@@ -298,7 +593,7 @@
 <path id="textPath" d="M 0 0 A 4.275 4.275 0 0 0 0 -8.55" fill="none"/>
 
 <!-- Texte aligné parfaitement sur le demi-cercle -->
-<text dy="-0.1" font-size="0.5" fill="red" font-family="Arial">
+<text dy="-0.1" font-size="0.5" fill="red" font-family="Arial" class="etiquettes-sinus-cosinus">
 <textPath href="#textPath" startOffset="17%">
     cosinus
 </textPath>
@@ -313,7 +608,7 @@
         <path id="sineTextArc" d="M 0 -0.2 A 7 7 0 0 1 2.924 -3.8559" fill="none"/>
 
         <!-- Texte "sinus" courbé -->
-        <text font-size="0.5" fill="red" font-family="Arial">
+        <text font-size="0.5" fill="red" font-family="Arial" class="etiquettes-sinus-cosinus">
             <textPath href="#sineTextArc" startOffset="60%" text-anchor="middle">
                 sinus
             </textPath>
@@ -371,6 +666,7 @@ const svgHeures = document.querySelector("svg");
 
 const gHeures = document.createElementNS("http://www.w3.org/2000/svg", "g");
 gHeures.setAttribute("transform", "scale(1,-1)");
+gHeures.setAttribute("class", "numeros-heures");
 
 for (let i = 0; i < anglesHeures.length; i++) {
     const a = anglesHeures[i] + decalagesIndividuels[i];  // application du décalage individuel
@@ -414,7 +710,7 @@ svgHeures.appendChild(gHeures);
             {% for ligne in graphe_equation_temps.lignes_verticales %}
                 {% if ligne.text is defined %}
                     <!-- Affichage du nom du mois -->
-                    <text x="{{ ligne.x }}" y="{{ ligne.y }}" font-family="century gothic, arial, calibri" font-size="{{ ligne.font_size }}" text-anchor="{{ ligne.anchor }}" stroke="{{ ligne.stroke }}" fill="{{ ligne.fill }}">{{ ligne.text }}</text>
+                    <text x="{{ ligne.x }}" y="{{ ligne.y }}" font-family="century gothic, arial, calibri" font-size="{{ ligne.font_size }}" text-anchor="{{ ligne.anchor }}" stroke="{{ ligne.stroke }}" fill="{{ ligne.fill }}" class="etiquettes-mois">{{ ligne.text }}</text>
                 {% else %}
                     <!-- Affichage de la ligne verticale -->
                     <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
@@ -432,7 +728,8 @@ svgHeures.appendChild(gHeures);
                         font-family="Arial"
                         text-anchor="{{ ligne.anchor }}" 
                         stroke="{{ ligne.stroke }}" 
-                        fill="{{ ligne.fill }}">{{ ligne.text }}</text>
+                        fill="{{ ligne.fill }}"
+                        class="minutes-equation-temps">{{ ligne.text }}</text>
                 {% else %}
                     <!-- Affichage de la ligne horizontale -->
                     <line x1="{{ ligne.x1 }}" y1="{{ ligne.y1 }}" x2="{{ ligne.x2 }}" y2="{{ ligne.y2 }}" stroke="{{ ligne.stroke }}" stroke-width="{{ ligne.stroke_width }}" />
@@ -575,6 +872,7 @@ L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
     // groupe général inversé
     const gAngles = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gAngles.setAttribute("transform", "scale(1,-1)");
+    gAngles.setAttribute("class", "indications-degres");
 
     // génération des textes
     for (let a of anglesQuadrant1) {
@@ -609,6 +907,63 @@ L -1.1071,5.7270 Z" fill="none" stroke="blue" stroke-width="0.05"/>
     const DIAM = parseFloat("{{ diametre_astrolabe }}") || 0;
     const R_DOS = (9.45 / 12.35) * (DIAM / 2);
     document.getElementById("rayon").textContent = R_DOS.toFixed(3);
+</script>
+
+<script>
+    function toggleHeuresInegales() {
+        const toggle = document.getElementById('heures-inegales-toggle');
+        const numerosHeures = document.querySelector('.numeros-heures');
+        
+        toggle.classList.toggle('active');
+        
+        if (numerosHeures) {
+            numerosHeures.classList.toggle('hidden');
+        }
+    }
+
+    function toggleDegres() {
+        const toggle = document.getElementById('degres-toggle');
+        const indicationsDegres = document.querySelector('.indications-degres');
+        
+        toggle.classList.toggle('active');
+        
+        if (indicationsDegres) {
+            indicationsDegres.classList.toggle('hidden');
+        }
+    }
+
+    function toggleSinusCosinus() {
+        const toggle = document.getElementById('sinus-cosinus-toggle');
+        const etiquettes = document.querySelectorAll('.etiquettes-sinus-cosinus');
+        
+        toggle.classList.toggle('active');
+        
+        etiquettes.forEach(etiquette => {
+            etiquette.classList.toggle('hidden');
+        });
+    }
+
+    function toggleMinutes() {
+        const toggle = document.getElementById('minutes-toggle');
+        const minutes = document.querySelectorAll('.minutes-equation-temps');
+        
+        toggle.classList.toggle('active');
+        
+        minutes.forEach(minute => {
+            minute.classList.toggle('hidden');
+        });
+    }
+
+    function toggleMois() {
+        const toggle = document.getElementById('mois-toggle');
+        const mois = document.querySelectorAll('.etiquettes-mois');
+        
+        toggle.classList.toggle('active');
+        
+        mois.forEach(m => {
+            m.classList.toggle('hidden');
+        });
+    }
 </script>
 
     <a href="#" class="back-button" onclick="window.history.back(); return false;">Retour</a>
