@@ -87,12 +87,312 @@
       color: white;
       background-color: red;
     }
+
+    #degres-control {
+      position: absolute;
+      top: 65px;
+      right: 150px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid black;
+      background-color: #f9f9f9;
+      font-family: century gothic, arial, calibri;
+      font-size: 14px;
+    }
+
+    #degres-toggle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
+
+    #degres-toggle.active {
+      background-color: blue;
+    }
+
+    #degres-toggle::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #333;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: background-color 0.3s;
+    }
+
+    #degres-toggle.active::after {
+      background-color: white;
+    }
+
+    .indications-degres {
+      transition: opacity 0.3s;
+    }
+
+    .indications-degres.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #etiquettes-axes-control {
+      position: absolute;
+      top: 125px;
+      right: 160px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid black;
+      background-color: #f9f9f9;
+      font-family: century gothic, arial, calibri;
+      font-size: 14px;
+    }
+
+    #etiquettes-axes-toggle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
+
+    #etiquettes-axes-toggle.active {
+      background-color: blue;
+    }
+
+    #etiquettes-axes-toggle::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #333;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: background-color 0.3s;
+    }
+
+    #etiquettes-axes-toggle.active::after {
+      background-color: white;
+    }
+
+    .etiquettes-axes {
+      transition: opacity 0.3s;
+    }
+
+    .etiquettes-axes.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #triangle-control {
+      position: absolute;
+      top: 185px;
+      right: 170px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid black;
+      background-color: #f9f9f9;
+      font-family: century gothic, arial, calibri;
+      font-size: 14px;
+    }
+
+    #triangle-toggle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
+
+    #triangle-toggle.active {
+      background-color: blue;
+    }
+
+    #triangle-toggle::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #333;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: background-color 0.3s;
+    }
+
+    #triangle-toggle.active::after {
+      background-color: white;
+    }
+
+    .triangle-rectangle {
+      transition: opacity 0.3s;
+    }
+
+    .triangle-rectangle.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #etiquettes-triangle-control {
+      position: absolute;
+      top: 245px;
+      right: 90px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid black;
+      background-color: #f9f9f9;
+      font-family: century gothic, arial, calibri;
+      font-size: 14px;
+    }
+
+    #etiquettes-triangle-toggle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
+
+    #etiquettes-triangle-toggle.active {
+      background-color: blue;
+    }
+
+    #etiquettes-triangle-toggle::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #333;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: background-color 0.3s;
+    }
+
+    #etiquettes-triangle-toggle.active::after {
+      background-color: white;
+    }
+
+    .etiquettes-triangle {
+      transition: opacity 0.3s;
+    }
+
+    .etiquettes-triangle.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #soh-cah-toa-control {
+      position: absolute;
+      top: 310px;
+      right: 55px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid black;
+      background-color: #f9f9f9;
+      font-family: century gothic, arial, calibri;
+      font-size: 14px;
+    }
+
+    #soh-cah-toa-toggle {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #333;
+      border-radius: 50%;
+      background-color: white;
+      cursor: pointer;
+      position: relative;
+      transition: background-color 0.3s;
+    }
+
+    #soh-cah-toa-toggle.active {
+      background-color: blue;
+    }
+
+    #soh-cah-toa-toggle::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #333;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: background-color 0.3s;
+    }
+
+    #soh-cah-toa-toggle.active::after {
+      background-color: white;
+    }
+
+    .soh-cah-toa {
+      transition: opacity 0.3s;
+    }
+
+    .soh-cah-toa.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
 </head>
 
 <body>
 
   <h1>Dos de l'astrolabe (II)</h1>
+
+  <div id="degres-control">
+    <div id="degres-toggle" class="active" onclick="toggleDegres()"></div>
+    <span>Indication des degrés</span>
+  </div>
+
+  <div id="etiquettes-axes-control">
+    <div id="etiquettes-axes-toggle" class="active" onclick="toggleEtiquettesAxes()"></div>
+    <span>Étiquettes des axes</span>
+  </div>
+
+  <div id="triangle-control">
+    <div id="triangle-toggle" class="active" onclick="toggleTriangle()"></div>
+    <span>Triangle rectangle</span>
+  </div>
+
+  <div id="etiquettes-triangle-control">
+    <div id="etiquettes-triangle-toggle" class="active" onclick="toggleEtiquettesTriangle()"></div>
+    <span>Étiquettes du triangle rectangle</span>
+  </div>
+
+  <div id="soh-cah-toa-control">
+    <div id="soh-cah-toa-toggle" class="active" onclick="toggleSohCahToa()"></div>
+    <span>Moyen mnémotechnique soh cah toa</span>
+  </div>
 
   <div id="info-box">
     x: <span id="x">0.00</span><br>
@@ -135,6 +435,7 @@
 
     const g = document.createElementNS(NS, 'g');
     g.setAttribute('transform', 'scale(1, -1)');
+    g.setAttribute('class', 'indications-degres');
     
     // 10°
     const text10 = document.createElementNS(NS, 'text');
@@ -264,6 +565,7 @@ for (let m = -20; m <= 20; m += 5) {
     label.setAttribute("text-anchor", "middle");
     label.setAttribute("font-size", "0.525");
     label.setAttribute("fill", "black");
+    label.setAttribute("class", "etiquettes-axes");
     if (m < 0) {
       label.textContent = "−" + Math.abs(m);
     } else if (m > 0) {
@@ -300,6 +602,7 @@ for (let d = -25; d <= 25; d += 5) {
       label.setAttribute("text-anchor", "start");
       label.setAttribute("font-size", "0.525");
       label.setAttribute("fill", "black");
+      label.setAttribute("class", "etiquettes-axes");
       label.textContent = (d < 0 ? "−" + Math.abs(d) : d) + "°";
       svg.appendChild(label);
     }
@@ -681,6 +984,7 @@ for (let d = -25; d <= 25; d++) {
   // === Triangle rectangle ===
   const g = document.createElementNS(NS, 'g');
   g.setAttribute('transform', 'scale(1,-1)');
+  g.setAttribute('class', 'triangle-rectangle');
 
   const points = "-8.19,-2.1 -3.57,-2.1 -3.57,-7.35";
 
@@ -700,6 +1004,7 @@ for (let d = -25; d <= 25; d++) {
   text.setAttribute("font-size", "0.63");
   text.setAttribute("fill", "black");
   text.setAttribute("font-family", "century gothic, arial, calibri");
+  text.setAttribute("class", "etiquettes-triangle");
   text.textContent = "adjacent";
   svg.appendChild(text);
 
@@ -711,6 +1016,7 @@ for (let d = -25; d <= 25; d++) {
   textOppose.setAttribute("fill", "black");
   textOppose.setAttribute("font-family", "century gothic, arial, calibri");
   textOppose.setAttribute("transform", "rotate(-90, -2.73, -5.46)");
+  textOppose.setAttribute("class", "etiquettes-triangle");
   textOppose.textContent = "opposé";
   svg.appendChild(textOppose);
 
@@ -722,6 +1028,7 @@ for (let d = -25; d <= 25; d++) {
   textHypotenuse.setAttribute("fill", "black");
   textHypotenuse.setAttribute("font-family", "century gothic, arial, calibri");
   textHypotenuse.setAttribute("transform", "rotate(48.4, -5.88, -5.46)");
+  textHypotenuse.setAttribute("class", "etiquettes-triangle");
   textHypotenuse.textContent = "hypoténuse";
   svg.appendChild(textHypotenuse);
 
@@ -729,8 +1036,8 @@ for (let d = -25; d <= 25; d++) {
 const angleArc = document.createElementNS(NS, "path");
 const cx = -6.405;
 const cy = -2.94;
-const rArc = 1.05;
-const startAngle = Math.PI;
+const rArc = 1.1;
+const startAngle = Math.PI - 0.08;
 const endAngle = Math.PI - (48.4 * Math.PI / 180);
 const x1 = cx + rArc * Math.cos(startAngle);
 const y1 = cy + rArc * Math.sin(startAngle);
@@ -751,6 +1058,7 @@ g.appendChild(angleArc);
   textTheta.setAttribute("font-size", "0.63");
   textTheta.setAttribute("fill", "black");
   textTheta.setAttribute("font-family", "century gothic, arial, calibri");
+  textTheta.setAttribute("class", "triangle-rectangle");
   textTheta.innerHTML = "θ";
   svg.appendChild(textTheta);
 
@@ -761,6 +1069,7 @@ g.appendChild(angleArc);
   textSin.setAttribute("font-size", "0.525");
   textSin.setAttribute("fill", "black");
   textSin.setAttribute("font-family", "century gothic, arial, calibri");
+  textSin.setAttribute("class", "soh-cah-toa");
   textSin.innerHTML = "sin(θ) = opp/hyp";
   svg.appendChild(textSin);
   // cos
@@ -770,6 +1079,7 @@ g.appendChild(angleArc);
   textCos.setAttribute("font-size", "0.525");
   textCos.setAttribute("fill", "black");
   textCos.setAttribute("font-family", "century gothic, arial, calibri");
+  textCos.setAttribute("class", "soh-cah-toa");
   textCos.innerHTML = "cos(θ) = adj/hyp";
   svg.appendChild(textCos);
   // tan
@@ -779,6 +1089,7 @@ g.appendChild(angleArc);
   textTan.setAttribute("font-size", "0.525");
   textTan.setAttribute("fill", "black");
   textTan.setAttribute("font-family", "century gothic, arial, calibri");
+  textTan.setAttribute("class", "soh-cah-toa");
   textTan.innerHTML = "tan(θ) = opp/adj";
   svg.appendChild(textTan);
 
@@ -791,6 +1102,7 @@ arrow.setAttribute("y2", 4.62);
 arrow.setAttribute("stroke", "black");
 arrow.setAttribute("stroke-width", "0.042");
 arrow.setAttribute("marker-end", "url(#arrowhead)");
+arrow.setAttribute("class", "soh-cah-toa");
 svg.appendChild(arrow);
 
 // Définition du marqueur de flèche
@@ -821,6 +1133,7 @@ textSohCahToa.setAttribute("font-size", "0.5565");
 textSohCahToa.setAttribute("fill", "black");
 textSohCahToa.setAttribute("font-family", "century gothic, arial, calibri");
 textSohCahToa.setAttribute("text-anchor", "middle");
+textSohCahToa.setAttribute("class", "soh-cah-toa");
 textSohCahToa.textContent = "soh cah toa";
 svg.appendChild(textSohCahToa);
 
@@ -940,6 +1253,63 @@ svg.appendChild(textSohCahToa);
     const DIAM = parseFloat("{{ diametre_astrolabe }}") || 0;
     const R_DOS = (9.45 / 12.35) * (DIAM / 2);
     document.getElementById("rayon").textContent = R_DOS.toFixed(3);
+</script>
+
+<script>
+    function toggleDegres() {
+        const toggle = document.getElementById('degres-toggle');
+        const degres = document.querySelector('.indications-degres');
+        
+        toggle.classList.toggle('active');
+        
+        if (degres) {
+            degres.classList.toggle('hidden');
+        }
+    }
+
+    function toggleEtiquettesAxes() {
+        const toggle = document.getElementById('etiquettes-axes-toggle');
+        const etiquettes = document.querySelectorAll('.etiquettes-axes');
+        
+        toggle.classList.toggle('active');
+        
+        etiquettes.forEach(etiquette => {
+            etiquette.classList.toggle('hidden');
+        });
+    }
+
+    function toggleTriangle() {
+        const toggle = document.getElementById('triangle-toggle');
+        const triangles = document.querySelectorAll('.triangle-rectangle');
+        
+        toggle.classList.toggle('active');
+        
+        triangles.forEach(tri => {
+            tri.classList.toggle('hidden');
+        });
+    }
+
+    function toggleEtiquettesTriangle() {
+        const toggle = document.getElementById('etiquettes-triangle-toggle');
+        const etiquettes = document.querySelectorAll('.etiquettes-triangle');
+        
+        toggle.classList.toggle('active');
+        
+        etiquettes.forEach(etiquette => {
+            etiquette.classList.toggle('hidden');
+        });
+    }
+
+    function toggleSohCahToa() {
+        const toggle = document.getElementById('soh-cah-toa-toggle');
+        const elements = document.querySelectorAll('.soh-cah-toa');
+        
+        toggle.classList.toggle('active');
+        
+        elements.forEach(element => {
+            element.classList.toggle('hidden');
+        });
+    }
 </script>
 
 <button class="back-button" onclick="window.history.back()">Retour</button>
