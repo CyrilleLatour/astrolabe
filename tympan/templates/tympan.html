@@ -191,6 +191,10 @@
 </head>
 
 <body>
+<div id="latitude-control">
+    <div id="latitude-toggle" class="active" onclick="toggleLatitudeText()"></div>
+    <span>Indication de latitude</span>
+</div>
 <div class="container">
     <h1>Tympan de l'Astrolabe</h1>
 
@@ -434,7 +438,7 @@
                 {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
                 {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
                 {% set label_y = (capricorne_y + suppl_y) / 2 %}
-                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black">
+                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black" class="latitude-text">
                     {{ latitude_dms }}
                 </text>
                 
@@ -801,7 +805,7 @@
                 {% set capricorne_y = centre_y + (fixed_radius_capricorne * facteur) %}
                 {% set suppl_y = centre_y + (fixed_radius_suppl * facteur) %}
                 {% set label_y = (capricorne_y + suppl_y) / 2 %}
-                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black">
+                <text x="300" y="{{ label_y }}" text-anchor="middle" dominant-baseline="middle" font-size="16" font-family="Arial, sans-serif" fill="black" class="latitude-text">
                     {{ latitude_dms }}
                 </text>
                 
@@ -886,6 +890,21 @@ function afficherCoordTympan(event) {
     document.getElementById("rayon").textContent = R_TYMPAN.toFixed(3);
 </script>
 
+<script>
+function toggleLatitudeText() {
+    const toggle = document.getElementById('latitude-toggle');
+    const latitudeTexts = document.querySelectorAll('.latitude-text');
+    toggle.classList.toggle('active');
+    latitudeTexts.forEach(text => {
+        text.classList.toggle('hidden');
+    });
+}
+
+// Fonction par défaut pour éviter l'erreur si le tympan n'est pas encore généré
+function afficherCoordTympan(event) {
+    // Sera remplacée par la vraie fonction si le tympan est généré
+}
+</script>
 
 </body>
 </html>
